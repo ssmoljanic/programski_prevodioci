@@ -1,0 +1,7 @@
+glavniObrok(){
+    izvolite porudzbina i je 1;
+    dokNeDobijemObrok(i <= 3){
+        konobar(i);
+        i je i ukupno 1;
+    }
+}

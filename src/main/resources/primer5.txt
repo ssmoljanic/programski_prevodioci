@@ -1,0 +1,12 @@
+glavniObrok(){
+    izvolite porudzbina n;
+    daceteMi(n);
+
+    rezervisanSto(n < 0){
+        konobar("negativan");
+    } slobodanSto(n == 0){
+        konobar("nula");
+    } jescemoNegdeDrugo {
+        konobar("pozitivan");
+    }
+}

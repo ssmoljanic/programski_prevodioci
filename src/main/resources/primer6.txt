@@ -1,0 +1,17 @@
+glavniObrok(){
+    izvolite porudzbina opcija je 0;
+    radiNesto(opcija>0){
+        konobar("1-supa 2-glavno 3-dezert");
+        daceteMi(opcija);
+        naplati(opcija){
+            sto 1:
+                konobar("supa");
+            sto 2:
+                konobar("glavno");
+            sto 3:
+                konobar("dezert");
+            naplaceno:
+                konobar("kraj");
+        }
+    } 
+}

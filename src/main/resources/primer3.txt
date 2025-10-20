@@ -1,0 +1,8 @@
+recept porudzbina stampaj(jelovnik msg){
+    konobar(msg);
+    return;
+}
+
+glavniObrok(){
+    stampaj("Pozdrav!");
+}

@@ -1,0 +1,3 @@
+glavniObrok(){
+    konobar("nezavrsen string);
+}

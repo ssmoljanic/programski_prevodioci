@@ -1,0 +1,5 @@
+glavniObrok(){
+    izvolite porudzbina broj-stola;
+    broj-stola je 5;
+    konobar(broj-stola);
+}

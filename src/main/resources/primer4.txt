@@ -1,0 +1,8 @@
+recept porudzbina saberi(porudzbina a, porudzbina b){
+    return a ukupno b;
+}
+
+glavniObrok(){
+    izvolite porudzbina z je saberi(7, 5);
+    konobar(z);
+}

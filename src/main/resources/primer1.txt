@@ -1,0 +1,7 @@
+glavniObrok(){
+    izvolite porudzbina x;
+    izvolite racun y je 12.5;
+    daceteMi(x);
+    y je y ukupno x;
+    konobar(y);
+}
