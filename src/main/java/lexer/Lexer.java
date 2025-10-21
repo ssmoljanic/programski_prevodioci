@@ -72,19 +72,43 @@ public class Lexer {
         switch (c) {
             case '(' -> add(TokenType.LPAREN);
             case ')' -> add(TokenType.RPAREN);
+            case '{' -> add(TokenType.LBRACE);
+            case '}' -> add(TokenType.RBRACE);
             case '[' -> add(TokenType.LBRACKET);
             case ']' -> add(TokenType.RBRACKET);
             case ',' -> add(TokenType.SEPARATOR_COMMA);
             case ':' -> add(TokenType.TYPE_COLON);
+            case ';' -> add(TokenType.SEMICOLON);
+            case '"'  -> stringLiteral();
+            case '\'' -> charLiteral();
+            case '/' -> {
+                if (sc.match('/')) {          // //
+                    skipLineComment();
+                } else if (sc.match('*')) {   /* ... */
+                    skipBlockComment();
+                } else {
+                    throw error("Operator '/' nije dozvoljen. Koristi 'deljeno'.");
+                }
+            }
+            case '#' -> { skipLineComment(); }
 
             case '<' -> add(sc.match('=') ? TokenType.LE : TokenType.LT);
             case '>' -> add(sc.match('=') ? TokenType.GE : TokenType.GT);
-            case '=' -> add(TokenType.EQ);
+            case '=' -> add(sc.match('=') ? TokenType.EQ : TokenType.JE);
+
             case '!' -> {
                 if (sc.match('=')) add(TokenType.NEQ);
                 else throw error("Unexpected '!'");
             }
-            case '\n' -> tokens.add(new Token(
+            case '&' -> {
+                if (sc.match('&')) add(TokenType.AND);
+                else throw error("Očekivano &&");
+            }
+            case '|' -> {
+                if (sc.match('|')) add(TokenType.OR);
+                else throw error("Očekivano ||");
+            }
+                case '\n' -> tokens.add(new Token(
                     TokenType.NEWLINE, "\n", null, sc.getStartLine(), sc.getStartCol(), sc.getStartCol()
             ));
             case ' ', '\r', '\t' -> {}
@@ -97,14 +121,32 @@ public class Lexer {
     }
 
     private void number() {
+        boolean isDouble = false;
+
         while (Character.isDigit(sc.peek())) sc.advance();
+
+        if (sc.peek() == '.') {
+            isDouble = true;
+            sc.advance(); // '.'
+            if (!Character.isDigit(sc.peek()))
+                throw error("Očekivan broj posle decimalne tačke");
+            while (Character.isDigit(sc.peek())) sc.advance();
+        }
+
         String text = source.substring(sc.getStartIdx(), sc.getCur());
+
         char nextChar = sc.peek();
         if (Character.isAlphabetic(nextChar)) {
-            throw error("Error: Character in int literal");
+            throw error("Karakter u numeričkom literalu");
         }
-        addLiteralInt(text);
+
+        if (isDouble) {
+            add(TokenType.DOUBLE_LIT, text);
+        } else {
+            addLiteralInt(text);
+        }
     }
+
 
     private void identifier() {
         while (isIdentPart(sc.peek())) sc.advance();
@@ -112,6 +154,70 @@ public class Lexer {
         TokenType type = KEYWORDS.getOrDefault(text, TokenType.IDENT);
         add(type, text);
     }
+    // Komentari
+    private void skipLineComment() {
+        while (!sc.isAtEnd() && sc.peek() != '\n') sc.advance();
+    }
+
+    private void skipBlockComment() {
+        while (!sc.isAtEnd()) {
+            if (sc.peek() == '*') {
+                sc.advance();
+                if (!sc.isAtEnd() && sc.peek() == '/') { sc.advance(); return; }
+            } else {
+                sc.advance();
+            }
+        }
+        throw error("Nedovršen blok komentar /* ... */");
+    }
+    private void stringLiteral() {
+
+        while (!sc.isAtEnd()) {
+            char p = sc.peek();
+            if (p == '"') {
+                sc.advance();
+                String lex = source.substring(sc.getStartIdx(), sc.getCur());
+                add(TokenType.STRING_LIT, lex);
+                return;
+            }
+            if (p == '\\') {
+                sc.advance();
+                if (sc.isAtEnd()) throw error("Nedovršen escape u stringu");
+                char e = sc.peek();
+                switch (e) {
+                    case 'n', 't', '0', '"', '\\' -> sc.advance();
+                    default -> throw error("Nepoznat escape u stringu: \\" + e);
+                }
+            } else {
+                if (p == '\n') throw error("Novi red unutar stringa");
+                sc.advance();
+            }
+        }
+        throw error("Nedovršen string literal");
+    }
+
+    private void charLiteral() {
+
+        if (sc.isAtEnd()) throw error("Nedovršen char literal");
+
+        if (sc.peek() == '\\') {
+            sc.advance();
+            if (sc.isAtEnd()) throw error("Nedovršen escape u char literal-u");
+            char e = sc.peek();
+            switch (e) {
+                case 'n', 't', '0', '\'', '\\' -> sc.advance();
+                default -> throw error("Nepoznat escape u char literal-u: \\" + e);
+            }
+        } else {
+            sc.advance();
+        }
+
+        if (sc.peek() != '\'') throw error("Očekivan zatvarajući ' u char literal-u");
+        sc.advance();
+        String lex = source.substring(sc.getStartIdx(), sc.getCur());
+        add(TokenType.CHAR_LIT, lex);
+    }
+
 
     private boolean isIdentStart(char c) { return Character.isLetter(c) || c == '_'; }
     private boolean isIdentPart(char c)  { return isIdentStart(c) || Character.isDigit(c); }
