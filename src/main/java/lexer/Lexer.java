@@ -13,19 +13,43 @@ public class Lexer {
     private final List<Token> tokens = new ArrayList<>();
 
     private static final Map<String, TokenType> KEYWORDS = Map.ofEntries(
-            Map.entry("int", TokenType.INT),
-            Map.entry("begin", TokenType.BEGIN),
-            Map.entry("end", TokenType.END),
-            Map.entry("function", TokenType.FUNCTION),
-            Map.entry("if", TokenType.IF),
-            Map.entry("or", TokenType.OR),
-            Map.entry("else", TokenType.ELSE),
-            Map.entry("for", TokenType.FOR),
-            Map.entry("goes", TokenType.GOES),
-            Map.entry("from", TokenType.FROM),
-            Map.entry("to", TokenType.TO),
-            Map.entry("call", TokenType.CALL),
-            Map.entry("return", TokenType.RETURN)
+            Map.entry("izvolite", TokenType.IZVOLITE),
+            Map.entry("porudzbina", TokenType.PORUDZBINA),
+            Map.entry("racun", TokenType.RACUN),
+            Map.entry("predjelo", TokenType.PREDJELO),
+            Map.entry("usluzenNeusluzen", TokenType.USLUZENNEUSLUZEN),
+            Map.entry("jelovnik", TokenType.JELOVNIK),
+            Map.entry("listaCekanja", TokenType.LISTACEKANJA),
+
+            Map.entry("daceteMi", TokenType.DACETEMI),
+            Map.entry("konobar", TokenType.KONOBAR),
+
+            Map.entry("rezervisanSto", TokenType.REZERVISANSTO),
+            Map.entry("slobodanSto", TokenType.SLOBODANSTO),
+            Map.entry("jescemoNegdeDrugo", TokenType.JESCEMONEGDEDRUGO),
+            Map.entry("novaTura", TokenType.NOVATURA),
+            Map.entry("dokNeDobijemObrok", TokenType.DOKNEDOBIJEMOBROK),
+            Map.entry("radiNesto", TokenType.RADINESTO),
+
+            Map.entry("naplati", TokenType.NAPLATI),
+            Map.entry("sto", TokenType.STO),
+            Map.entry("naplaceno", TokenType.NAPLACENO),
+
+            Map.entry("recept", TokenType.RECEPT),
+            Map.entry("return", TokenType.RETURN),
+            Map.entry("glavniObrok", TokenType.GLAVNIOBROK),
+
+            Map.entry("true", TokenType.TRUE),
+            Map.entry("false", TokenType.FALSE),
+
+            Map.entry("je", TokenType.JE),
+            Map.entry("ukupno", TokenType.UKUPNO),
+            Map.entry("manje", TokenType.MANJE),
+            Map.entry("puta", TokenType.PUTA),
+            Map.entry("deljeno", TokenType.DELJENO),
+            Map.entry("kusur", TokenType.KUSUR)
+
+
     );
 
     public Lexer(String source) {
@@ -52,11 +76,7 @@ public class Lexer {
             case ']' -> add(TokenType.RBRACKET);
             case ',' -> add(TokenType.SEPARATOR_COMMA);
             case ':' -> add(TokenType.TYPE_COLON);
-            case '+' -> add(TokenType.ADD);
-            case '-' -> add(sc.match('>') ? TokenType.ASSIGN : TokenType.SUBTRACT);
-            case '*' -> add(TokenType.MULTIPLY);
-            case '/' -> add(TokenType.DIVIDE);
-            case '%' -> add(TokenType.PERCENT);
+
             case '<' -> add(sc.match('=') ? TokenType.LE : TokenType.LT);
             case '>' -> add(sc.match('=') ? TokenType.GE : TokenType.GT);
             case '=' -> add(TokenType.EQ);
