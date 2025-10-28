@@ -98,7 +98,7 @@ public class Lexer {
 
             case '!' -> {
                 if (sc.match('=')) add(TokenType.NEQ);
-                else throw error("Unexpected '!'");
+                else throw error("Očekivano !=");
             }
             case '&' -> {
                 if (sc.match('&')) add(TokenType.AND);
