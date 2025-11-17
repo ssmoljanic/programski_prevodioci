@@ -1,6 +1,6 @@
 glavniObrok(){
     izvolite porudzbina opcija je 0;
-    radiNesto(opcija>0){
+    dokNeDobijemObrok(opcija>0){
         konobar("1-supa 2-glavno 3-dezert");
         daceteMi(opcija);
         naplati(opcija){

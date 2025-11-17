@@ -41,6 +41,8 @@ public class Lexer {
 
             Map.entry("true", TokenType.TRUE),
             Map.entry("false", TokenType.FALSE),
+            Map.entry("usluzen", TokenType.USLUZEN),
+            Map.entry("neusluzen", TokenType.NEUSLUZEN),
 
             Map.entry("je", TokenType.JE),
             Map.entry("ukupno", TokenType.UKUPNO),
@@ -94,11 +96,12 @@ public class Lexer {
 
             case '<' -> add(sc.match('=') ? TokenType.LE : TokenType.LT);
             case '>' -> add(sc.match('=') ? TokenType.GE : TokenType.GT);
-            case '=' -> add(sc.match('=') ? TokenType.EQ : TokenType.JE);
+            case '=' -> add(sc.match('=') ? TokenType.EQ : TokenType.EQUAL);
+
 
             case '!' -> {
                 if (sc.match('=')) add(TokenType.NEQ);
-                else throw error("Očekivano !=");
+                else add(TokenType.NOT);
             }
             case '&' -> {
                 if (sc.match('&')) add(TokenType.AND);
@@ -108,10 +111,10 @@ public class Lexer {
                 if (sc.match('|')) add(TokenType.OR);
                 else throw error("Očekivano ||");
             }
-                case '\n' -> tokens.add(new Token(
+               /*case '\n' -> tokens.add(new Token(
                     TokenType.NEWLINE, "\n", null, sc.getStartLine(), sc.getStartCol(), sc.getStartCol()
-            ));
-            case ' ', '\r', '\t' -> {}
+            ));*/
+            case '\n',' ', '\r', '\t' -> {}
             default -> {
                 if (Character.isDigit(c)) number();
                 else if (isIdentStart(c)) identifier();
