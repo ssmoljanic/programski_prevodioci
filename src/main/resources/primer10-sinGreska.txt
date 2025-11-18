@@ -1,0 +1,7 @@
+glavniObrok() {
+    izvolite porudzbina a je 5;
+
+    rezervisanSto(a < 10 {
+        konobar("Manje od 10");
+    }
+}

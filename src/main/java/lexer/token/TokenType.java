@@ -2,8 +2,8 @@ package lexer.token;
 
 public enum TokenType {
 
-     AND, OR,
-     IDENT, INT_LIT,
+    AND, OR,
+    IDENT, INT_LIT,
     LPAREN, RPAREN, LBRACKET, RBRACKET, LBRACE, RBRACE, SEPARATOR_COMMA, TYPE_COLON,SEMICOLON,
     LT, LE, GT, GE, EQ, NEQ, NOT,EQUAL,
     NEWLINE, EOF,

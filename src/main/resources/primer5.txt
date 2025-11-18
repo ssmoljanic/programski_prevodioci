@@ -1,12 +1,20 @@
-glavniObrok(){
-    izvolite porudzbina n;
-    daceteMi(n);
+izvolite jelovnik nazivRestorana je "Moj Restoran";
 
-    rezervisanSto(n < 0){
-        konobar("negativan");
-    } slobodanSto(n == 0){
-        konobar("nula");
+recept porudzbina max(porudzbina x, porudzbina y) {
+    rezervisanSto(x > y) {
+        return x;
     } jescemoNegdeDrugo {
-        konobar("pozitivan");
+        return y;
     }
+}
+
+glavniObrok() {
+    izvolite porudzbina a je 7;
+    izvolite porudzbina b je 4;
+
+    izvolite porudzbina m;
+    m je max(a, b);
+
+    konobar("Dobrodosli u ", nazivRestorana);
+    konobar("Maksimum je: ", m);
 }

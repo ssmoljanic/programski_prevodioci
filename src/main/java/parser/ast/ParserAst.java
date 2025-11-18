@@ -8,10 +8,6 @@ import java.util.List;
 
 import static lexer.token.TokenType.*;
 
-/**
- * Rekurzivno-silazni parser za jezik "Restoran".
- * Radi nad listom tokena i pravi AST čvorove (Ast, Expr, Stmt).
- */
 public final class ParserAst {
 
     private final List<Token> tokens;
@@ -21,23 +17,17 @@ public final class ParserAst {
         this.tokens = tokens;
     }
 
-    // =========================================================
-    //  program = { top_item } EOF ;
-    // =========================================================
+    // program = { top_item } EOF ;
     public Ast.Program parseProgram() {
         List<Ast.TopItem> items = new ArrayList<>();
         while (!check(EOF)) {
             items.add(parseTopItem());
         }
-        consume(EOF, "Očekivan EOF na kraju programa");
+        consume(EOF);
         return new Ast.Program(items);
     }
 
-    // top_item =
-    //      var_decl
-    //    | func_def
-    //    | main_def
-    //    | stmt ;
+    // top_item = var_decl | func_def | main_def | stmt ;
     private Ast.TopItem parseTopItem() {
         if (check(IZVOLITE)) {
             Stmt.VarDecl vd = parseVarDecl();
@@ -51,26 +41,23 @@ public final class ParserAst {
             Ast.MainDef m = parseMainDef();
             return m;
         }
-        // sve ostalo je neka naredba na top-nivou
         Stmt s = parseStmt();
         return new Ast.TopStmt(s);
     }
 
-    // =========================================================
-    //  func_def = RECEPT type IDENT "(" [ params ] ")" block ;
-    // =========================================================
+    // func_def = RECEPT type IDENT "(" [ params ] ")" block ;
     private Ast.FuncDef parseFuncDef() {
-        consume(RECEPT, "Očekivana ključna reč 'recept'");
+        consume(RECEPT);
         Ast.Type returnType = parseType();
-        Token name = consume(IDENT, "Očekivano ime funkcije");
-        consume(LPAREN, "Očekivana '(' posle imena funkcije");
+        Token name = consume(IDENT);
+        consume(LPAREN);
 
         List<Ast.Param> params = new ArrayList<>();
         if (!check(RPAREN)) {
             params = parseParams();
         }
 
-        consume(RPAREN, "Očekivana ')' posle parametara");
+        consume(RPAREN);
         Stmt.Block bodyBlock = parseBlock();
         return new Ast.FuncDef(name, params, returnType, bodyBlock.stmts);
     }
@@ -88,153 +75,149 @@ public final class ParserAst {
     // param = type IDENT ;
     private Ast.Param parseParam() {
         Ast.Type t = parseType();
-        Token name = consume(IDENT, "Očekivano ime parametra");
+        Token name = consume(IDENT);
         return new Ast.Param(name, t);
     }
 
-    // =========================================================
-    //  main_def = GLAVNIOBROK "(" ")" block ;
-    // =========================================================
+    // main_def = GLAVNIOBROK "(" ")" block ;
     private Ast.MainDef parseMainDef() {
-        consume(GLAVNIOBROK, "Očekivana ključna reč 'glavniObrok'");
-        consume(LPAREN, "Očekivana '('");
-        consume(RPAREN, "Očekivana ')'");
+        consume(GLAVNIOBROK);
+        consume(LPAREN);
+        consume(RPAREN);
         Stmt.Block body = parseBlock();
         return new Ast.MainDef(body.stmts);
     }
 
-    // =========================================================
-    //  type =
-    //      base_type
-    //    | LISTACEKANJA "{" type "}" dims ;
-    //
-    //  base_type =
-    //      PORUDZBINA | RACUN | PREDJELO | USLUZENNEUSLUZEN | JELOVNIK ;
-    //
-    //  dims = "[" INT_LIT "]" { "[" INT_LIT "]" } ;
-    // =========================================================
+    /*
+      type =
+         base_type
+        | LISTACEKANJA "{" type "}" dims ;
+
+      base_type = PORUDZBINA | RACUN | PREDJELO | USLUZENNEUSLUZEN | JELOVNIK ;
+    */
     private Ast.Type parseType() {
         if (match(LISTACEKANJA)) {
-            consume(LBRACE, "Očekivana '{' posle listaCekanja");
+            consume(LBRACE);
             Ast.Type inner = parseType();
-            consume(RBRACE, "Očekivana '}'");
-
-            int extraRank = parseDims();  // broj [] dimenzija
+            consume(RBRACE);
+            int extraRank = parseDims();
             int totalRank = inner.rank + extraRank;
-
-            // koristimo isti baseType kao unutrašnji
             return Ast.Type.array(inner.baseType, totalRank);
         } else {
-            // base_type
-            Token base = null;
+            Token base;
             if (match(PORUDZBINA, RACUN, PREDJELO, USLUZENNEUSLUZEN, JELOVNIK)) {
                 base = previous();
             } else {
-                throw error(peek(), "Očekivan osnovni tip (porudzbina, racun, predjelo, usluzenNeusluzen, jelovnik)");
+                throw new IllegalStateException(
+                        "ParserAst: expected base type, got " + peek().type
+                );
             }
             return Ast.Type.scalar(base);
         }
     }
 
+    // dims = "[" INT_LIT "]" { "[" INT_LIT "]" } ;
     private int parseDims() {
         int rank = 0;
-        consume(LBRACKET, "Očekivana '[' u dimenziji niza");
-        consume(INT_LIT, "Očekivan ceo broj kao veličina dimenzije");
-        consume(RBRACKET, "Očekivana ']'");
+        consume(LBRACKET);
+        consume(INT_LIT);
+        consume(RBRACKET);
         rank++;
         while (match(LBRACKET)) {
-            consume(INT_LIT, "Očekivan ceo broj kao veličina dimenzije");
-            consume(RBRACKET, "Očekivana ']'");
+            consume(INT_LIT);
+            consume(RBRACKET);
             rank++;
         }
         return rank;
     }
 
-    // =========================================================
-    //  var_decl =
-    //      IZVOLITE type ident init_opt
-    //      { "," ident init_opt } ";" ;
-    //
-    //  ident = IDENT ;
-    //  init_opt = [ ( "=" | JE ) expr ] ;
-    // =========================================================
+    /*
+      var_decl =
+        IZVOLITE type ident init_opt
+        { "," ident init_opt } ";" ;
+
+      init_opt = [ ( "=" | JE ) expr ] ;
+    */
     private Stmt.VarDecl parseVarDecl() {
-        consume(IZVOLITE, "Očekivana ključna reč 'izvolite'");
+        consume(IZVOLITE);
         Ast.Type type = parseType();
 
         List<Token> names = new ArrayList<>();
         List<Expr> inits = new ArrayList<>();
 
-        Token name = consume(IDENT, "Očekivano ime promenljive");
+        Token name = consume(IDENT);
         names.add(name);
         inits.add(parseInitOpt());
         while (match(SEPARATOR_COMMA)) {
-            Token n = consume(IDENT, "Očekivano ime promenljive");
+            Token n = consume(IDENT);
             names.add(n);
             inits.add(parseInitOpt());
         }
 
-        consume(SEMICOLON, "Očekivana ';' na kraju deklaracije");
+        consume(SEMICOLON);
         return new Stmt.VarDecl(type, names, inits);
     }
 
     private Expr parseInitOpt() {
-        if (match(EQ, JE)) {
+
+        if (match(EQUAL, JE)) {
             return parseExpr();
         }
         return null;
     }
 
-    // =========================================================
-    //  block = "{" { stmt } "}" ;
-    // =========================================================
+    // block = "{" { stmt } "}" ;
     private Stmt.Block parseBlock() {
-        consume(LBRACE, "Očekivana '{'");
+        consume(LBRACE);
         List<Stmt> stmts = new ArrayList<>();
         while (!check(RBRACE) && !check(EOF)) {
             stmts.add(parseStmt());
         }
-        consume(RBRACE, "Očekivana '}'");
+        consume(RBRACE);
         return new Stmt.Block(stmts);
     }
 
-    // =========================================================
-    //  stmt =
-    //      var_decl
-    //    | print_stmt
-    //    | read_stmt
-    //    | if_stmt
-    //    | while_stmt
-    //    | do_while_stmt
-    //    | for_stmt
-    //    | switch_stmt
-    //    | return_stmt
-    //    | expr ";" ;
-    // =========================================================
+    /*
+      stmt =
+          var_decl
+        | print_stmt
+        | read_stmt
+        | if_stmt
+        | while_stmt
+        | do_while_stmt
+        | for_stmt
+        | switch_stmt
+        | return_stmt
+        | expr ";" ;
+    */
     private Stmt parseStmt() {
-        if (check(IZVOLITE))      return parseVarDecl();
-        if (check(KONOBAR))       return parsePrintStmt();
-        if (check(DACETEMI))      return parseReadStmt();
-        if (check(REZERVISANSTO)) return parseIfStmt();
+        if (check(IZVOLITE))          return parseVarDecl();
+        if (check(KONOBAR))           return parsePrintStmt();
+        if (check(DACETEMI))          return parseReadStmt();
+        if (check(REZERVISANSTO))     return parseIfStmt();
         if (check(DOKNEDOBIJEMOBROK)) return parseWhileStmt();
-        if (check(RADINESTO))     return parseDoWhileStmt();
-        if (check(NOVATURA))      return parseForStmt();
-        if (check(NAPLATI))       return parseSwitchStmt();
-        if (check(RETURN))        return parseReturnStmt();
+        if (check(RADINESTO))         return parseDoWhileStmt();
+        if (check(NOVATURA))          return parseForStmt();
+        if (check(NAPLATI))           return parseSwitchStmt();
+        if (check(RETURN))            return parseReturnStmt();
 
-        // expr ";"
+
+        if (check(SLOBODANSTO) || check(JESCEMONEGDEDRUGO)) {
+            throw new IllegalStateException(
+                    "ParserAst: unexpected " + peek().type
+            );
+        }
+
         Expr e = parseExpr();
-        consume(SEMICOLON, "Očekivana ';' posle izraza");
+        consume(SEMICOLON);
         return new Stmt.ExprStmt(e);
     }
 
-    // =========================================================
-    //  print_stmt = KONOBAR "(" [ arg_list ] ")" ";" ;
-    //  arg_list = expr { "," expr } ;
-    // =========================================================
+    // print_stmt = KONOBAR "(" [ arg_list ] ")" ";" ;
+    // arg_list = expr { "," expr } ;
     private Stmt.Print parsePrintStmt() {
-        consume(KONOBAR, "Očekivana 'konobar'");
-        consume(LPAREN, "Očekivana '('");
+        consume(KONOBAR);
+        consume(LPAREN);
         List<Expr> args = new ArrayList<>();
         if (!check(RPAREN)) {
             args.add(parseExpr());
@@ -242,55 +225,51 @@ public final class ParserAst {
                 args.add(parseExpr());
             }
         }
-        consume(RPAREN, "Očekivana ')'");
-        consume(SEMICOLON, "Očekivana ';' posle konobar(...)");
+        consume(RPAREN);
+        consume(SEMICOLON);
         return new Stmt.Print(args);
     }
 
-    // =========================================================
-    //  read_stmt = DACETEMI "(" IDENT ")" ";" ;
-    // =========================================================
+    // read_stmt = DACETEMI "(" IDENT ")" ";" ;
     private Stmt.Read parseReadStmt() {
-        consume(DACETEMI, "Očekivana 'daceteMi'");
-        consume(LPAREN, "Očekivana '('");
-        Token name = consume(IDENT, "Očekivan identifikator u daceteMi(...)");
-        consume(RPAREN, "Očekivana ')'");
-        consume(SEMICOLON, "Očekivana ';'");
+        consume(DACETEMI);
+        consume(LPAREN);
+        Token name = consume(IDENT);
+        consume(RPAREN);
+        consume(SEMICOLON);
         return new Stmt.Read(name);
     }
 
-    // =========================================================
-    //  return_stmt = RETURN [ expr ] ";" ;
-    // =========================================================
+    // return_stmt = RETURN [ expr ] ";"
     private Stmt.Return parseReturnStmt() {
-        consume(RETURN, "Očekivana 'return'");
+        consume(RETURN);
         Expr expr = null;
         if (!check(SEMICOLON)) {
             expr = parseExpr();
         }
-        consume(SEMICOLON, "Očekivana ';' posle return");
+        consume(SEMICOLON);
         return new Stmt.Return(expr);
     }
 
-    // =========================================================
-    //  if_stmt =
-    //    REZERVISANSTO "(" expr ")" block
-    //      { SLOBODANSTO "(" expr ")" block }
-    //      [ JESCEMONEGDEDRUGO block ] ;
-    // =========================================================
+    /*
+      if_stmt =
+        REZERVISANSTO "(" expr ")" block
+          { SLOBODANSTO "(" expr ")" block }
+          [ JESCEMONEGDEDRUGO block ] ;
+    */
     private Stmt.If parseIfStmt() {
-        consume(REZERVISANSTO, "Očekivana 'rezervisanSto'");
-        consume(LPAREN, "Očekivana '('");
+        consume(REZERVISANSTO);
+        consume(LPAREN);
         Expr cond = parseExpr();
-        consume(RPAREN, "Očekivana ')'");
+        consume(RPAREN);
         Stmt.Block firstBlock = parseBlock();
         Stmt.If.Arm ifArm = new Stmt.If.Arm(cond, firstBlock.stmts);
 
         List<Stmt.If.Arm> elseIfArms = new ArrayList<>();
         while (match(SLOBODANSTO)) {
-            consume(LPAREN, "Očekivana '('");
+            consume(LPAREN);
             Expr c = parseExpr();
-            consume(RPAREN, "Očekivana ')'");
+            consume(RPAREN);
             Stmt.Block b = parseBlock();
             elseIfArms.add(new Stmt.If.Arm(c, b.stmts));
         }
@@ -304,48 +283,43 @@ public final class ParserAst {
         return new Stmt.If(ifArm, elseIfArms, elseBlock);
     }
 
-    // =========================================================
-    //  while_stmt = DOKNEDOBIJEMOBROK "(" expr ")" block ;
-    // =========================================================
+    // while_stmt = DOKNEDOBIJEMOBROK "(" expr ")" block ;
     private Stmt.While parseWhileStmt() {
-        consume(DOKNEDOBIJEMOBROK, "Očekivana 'dokNeDobijemObrok'");
-        consume(LPAREN, "Očekivana '('");
+        consume(DOKNEDOBIJEMOBROK);
+        consume(LPAREN);
         Expr cond = parseExpr();
-        consume(RPAREN, "Očekivana ')'");
+        consume(RPAREN);
         Stmt.Block body = parseBlock();
         return new Stmt.While(cond, body.stmts);
     }
 
-    // =========================================================
-    //  do_while_stmt =
-    //      RADINESTO block
-    //      DOKNEDOBIJEMOBROK "(" expr ")" ";" ;
-    // =========================================================
+    // do_while_stmt =
+    //    RADINESTO block
+    //    DOKNEDOBIJEMOBROK "(" expr ")" ";" ;
     private Stmt.DoWhile parseDoWhileStmt() {
-        consume(RADINESTO, "Očekivana 'radiNesto'");
+        consume(RADINESTO);
         Stmt.Block body = parseBlock();
-        consume(DOKNEDOBIJEMOBROK, "Očekivana 'dokNeDobijemObrok'");
-        consume(LPAREN, "Očekivana '('");
+        consume(DOKNEDOBIJEMOBROK);
+        consume(LPAREN);
         Expr cond = parseExpr();
-        consume(RPAREN, "Očekivana ')'");
-        consume(SEMICOLON, "Očekivana ';' na kraju do-while");
+        consume(RPAREN);
+        consume(SEMICOLON);
         return new Stmt.DoWhile(body.stmts, cond);
     }
 
-    // =========================================================
-    //  for_stmt =
-    //    NOVATURA "(" for_init_opt ";" [ expr ] ";" for_update_opt ")" block ;
-    //
-    //  (ovde pravimo jednostavniji AST:
-    //   init: Stmt (VarDecl ili ExprStmt ili null)
-    //   cond: Expr (može null)
-    //   update: List<Expr>)
-    // =========================================================
-    private Stmt.For parseForStmt() {
-        consume(NOVATURA, "Očekivana 'novaTura'");
-        consume(LPAREN, "Očekivana '('");
+    /*
+      for_stmt =
+        NOVATURA "(" for_init_opt ";" [ expr ] ";" for_update_opt ")" block ;
 
-        // for_init_opt
+      init: Stmt (VarDecl ili ExprStmt ili null)
+      cond: Expr
+      update: List<Expr>
+    */
+    private Stmt.For parseForStmt() {
+        consume(NOVATURA);
+        consume(LPAREN);
+
+
         Stmt init = null;
         if (!check(SEMICOLON)) {
             if (check(IZVOLITE)) {
@@ -355,39 +329,39 @@ public final class ParserAst {
                 init = new Stmt.ExprStmt(e);
             }
         }
-        consume(SEMICOLON, "Očekivana ';' u for");
+        consume(SEMICOLON);
 
-        // [ expr ]
+
         Expr cond = null;
         if (!check(SEMICOLON)) {
             cond = parseExpr();
         }
-        consume(SEMICOLON, "Očekivana ';' u for");
+        consume(SEMICOLON);
 
-        // for_update_opt
+
         List<Expr> update = new ArrayList<>();
         if (!check(RPAREN)) {
             update = parseForExprList();
         }
 
-        consume(RPAREN, "Očekivana ')'");
+        consume(RPAREN);
         Stmt.Block body = parseBlock();
         return new Stmt.For(init, cond, update, body.stmts);
     }
 
     // var_decl_in_for = IZVOLITE type ident init_opt { "," ident init_opt } ;
     private Stmt.VarDecl parseVarDeclInFor() {
-        consume(IZVOLITE, "Očekivana 'izvolite'");
+        consume(IZVOLITE);
         Ast.Type type = parseType();
 
         List<Token> names = new ArrayList<>();
         List<Expr> inits = new ArrayList<>();
 
-        Token name = consume(IDENT, "Očekivano ime promenljive");
+        Token name = consume(IDENT);
         names.add(name);
         inits.add(parseInitOpt());
         while (match(SEPARATOR_COMMA)) {
-            Token n = consume(IDENT, "Očekivano ime promenljive");
+            Token n = consume(IDENT);
             names.add(n);
             inits.add(parseInitOpt());
         }
@@ -405,24 +379,24 @@ public final class ParserAst {
         return list;
     }
 
-    // =========================================================
-    //  switch_stmt =
-    //    NAPLATI "(" expr ")" "{"
-    //        { STO case_label ":" { stmt } }
-    //        [ NAPLACENO ":" { stmt } ]
-    //    "}" ;
-    // =========================================================
+    /*
+      switch_stmt =
+        NAPLATI "(" expr ")" "{"
+            { STO case_label ":" { stmt } }
+            [ NAPLACENO ":" { stmt } ]
+        "}" ;
+    */
     private Stmt.Switch parseSwitchStmt() {
-        consume(NAPLATI, "Očekivana 'naplati'");
-        consume(LPAREN, "Očekivana '('");
+        consume(NAPLATI);
+        consume(LPAREN);
         Expr expr = parseExpr();
-        consume(RPAREN, "Očekivana ')'");
-        consume(LBRACE, "Očekivana '{'");
+        consume(RPAREN);
+        consume(LBRACE);
 
         List<Stmt.Switch.CaseArm> cases = new ArrayList<>();
         while (match(STO)) {
             Token labelTok = parseCaseLabel();
-            consume(TYPE_COLON, "Očekivana ':' posle sto <label>");
+            consume(TYPE_COLON);
 
             List<Stmt> body = new ArrayList<>();
             while (!check(STO) && !check(NAPLACENO) && !check(RBRACE)) {
@@ -433,14 +407,14 @@ public final class ParserAst {
 
         List<Stmt> defaultBlock = null;
         if (match(NAPLACENO)) {
-            consume(TYPE_COLON, "Očekivana ':' posle naplaceno");
+            consume(TYPE_COLON);
             defaultBlock = new ArrayList<>();
             while (!check(RBRACE)) {
                 defaultBlock.add(parseStmt());
             }
         }
 
-        consume(RBRACE, "Očekivana '}'");
+        consume(RBRACE);
         return new Stmt.Switch(expr, cases, defaultBlock);
     }
 
@@ -449,29 +423,27 @@ public final class ParserAst {
         if (match(INT_LIT, CHAR_LIT, STRING_LIT, IDENT)) {
             return previous();
         }
-        throw error(peek(), "Očekivana literalna vrednost ili identifikator u 'sto ...:'");
+        throw new IllegalStateException(
+                "ParserAst: unexpected token in case label: " + peek().type
+        );
     }
 
-    // =========================================================
-    //  expr = assign_expr ;
-    //
-    //  assign_expr =
-    //      lvalue ( "=" | JE ) assign_expr
-    //    | or_expr ;
-    //
-    //  lvalue = IDENT { "[" expr "]" } ;
-    // =========================================================
+    // expr = assign_expr ;
     private Expr parseExpr() {
         return parseAssignExpr();
     }
 
+    /*
+      assign_expr =
+          lvalue ( "=" | JE ) assign_expr
+        | or_expr ;
+    */
     private Expr parseAssignExpr() {
         Expr left = parseOrExpr();
 
-        if (match(EQ, JE)) {
+        if (match(EQUAL, JE)) {
             Token op = previous();
             Expr value = parseAssignExpr();
-            // levo bi semantički trebalo da bude lvalue
             return new Expr.Assign(left, op, value);
         }
         return left;
@@ -545,7 +517,7 @@ public final class ParserAst {
 
     // unary = (NOT | MANJE) unary | postfix ;
     private Expr parseUnary() {
-        if (match(NOT, MANJE)) { // MANJE je unarni minus
+        if (match(NOT, MANJE)) {
             Token op = previous();
             Expr right = parseUnary();
             return new Expr.Unary(op, right);
@@ -559,27 +531,26 @@ public final class ParserAst {
         while (true) {
             if (match(LBRACKET)) {
                 Expr indexExpr = parseExpr();
-                consume(RBRACKET, "Očekivana ']'");
+                consume(RBRACKET);
                 if (expr instanceof Expr.Ident id) {
                     List<Expr> indices = new ArrayList<>();
                     indices.add(indexExpr);
-                    // moguće više dimenzija:
                     while (match(LBRACKET)) {
                         Expr idx = parseExpr();
-                        consume(RBRACKET, "Očekivana ']'");
+                        consume(RBRACKET);
                         indices.add(idx);
                     }
                     expr = new Expr.Index(id.name, indices);
                 } else if (expr instanceof Expr.Index idxExpr) {
-                    // dodaj još jednu dimenziju postojećem index izrazu
                     List<Expr> newIdx = new ArrayList<>(idxExpr.indices);
                     newIdx.add(indexExpr);
                     expr = new Expr.Index(idxExpr.name, newIdx);
                 } else {
-                    throw error(previous(), "Indexiranje dozvoljeno samo nad identifikatorima/nizovima");
+                    throw new IllegalStateException(
+                            "ParserAst: indexing allowed only on identifiers/arrays"
+                    );
                 }
             } else if (match(LPAREN)) {
-                // poziv funkcije: IDENT(...)
                 List<Expr> args = new ArrayList<>();
                 if (!check(RPAREN)) {
                     args.add(parseExpr());
@@ -587,11 +558,13 @@ public final class ParserAst {
                         args.add(parseExpr());
                     }
                 }
-                consume(RPAREN, "Očekivana ')' u pozivu funkcije");
+                consume(RPAREN);
                 if (expr instanceof Expr.Ident id) {
                     expr = new Expr.Call(id.name, args);
                 } else {
-                    throw error(previous(), "Poziv funkcije dozvoljen samo nad imenom funkcije (IDENT)");
+                    throw new IllegalStateException(
+                            "ParserAst: function call allowed only on IDENT"
+                    );
                 }
             } else {
                 break;
@@ -608,19 +581,19 @@ public final class ParserAst {
     private Expr parsePrimary() {
         if (match(INT_LIT)) {
             Token t = previous();
-            return new Expr.Literal(t, t.literal); // pretpostavka: literal je Integer
+            return new Expr.Literal(t, t.literal);
         }
         if (match(DOUBLE_LIT)) {
             Token t = previous();
-            return new Expr.Literal(t, t.literal); // Double
+            return new Expr.Literal(t, t.literal);
         }
         if (match(STRING_LIT)) {
             Token t = previous();
-            return new Expr.Literal(t, t.literal); // String
+            return new Expr.Literal(t, t.literal);
         }
         if (match(CHAR_LIT)) {
             Token t = previous();
-            return new Expr.Literal(t, t.literal); // Character
+            return new Expr.Literal(t, t.literal);
         }
         if (match(USLUZEN)) {
             Token t = previous();
@@ -636,16 +609,17 @@ public final class ParserAst {
         }
         if (match(LPAREN)) {
             Expr inner = parseExpr();
-            consume(RPAREN, "Očekivana ')'");
+            consume(RPAREN);
             return new Expr.Grouping(inner);
         }
 
-        throw error(peek(), "Očekivan literal, identifikator ili '('");
+
+        throw new IllegalStateException(
+                "ParserAst: unexpected token in primary: " + peek().type
+        );
     }
 
-    // =========================================================
-    //  Utility metodе
-    // =========================================================
+
 
     private boolean match(TokenType... types) {
         for (TokenType t : types) {
@@ -657,9 +631,11 @@ public final class ParserAst {
         return false;
     }
 
-    private Token consume(TokenType type, String message) {
+    private Token consume(TokenType type) {
         if (check(type)) return advance();
-        throw error(peek(), message);
+        throw new IllegalStateException(
+                "ParserAst: expected " + type + " but found " + peek().type
+        );
     }
 
     private boolean check(TokenType type) {
@@ -681,16 +657,6 @@ public final class ParserAst {
     }
 
     private Token previous() {
-        return tokens.get(current - 1);
-    }
-
-    private ParseError error(Token token, String message) {
-        String where = token.type == EOF ? " na kraju ulaza" : " kod '" + token.lexeme + "'";
-        return new ParseError("Sintaksna greška" + where + ": " + message +
-                " (linija: " + token.line + ", kolona: " + token.colStart + ")");
-    }
-
-    private static final class ParseError extends RuntimeException {
-        ParseError(String msg) { super(msg); }
+        return current == 0 ? tokens.get(0) : tokens.get(current - 1);
     }
 }

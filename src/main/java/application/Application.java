@@ -3,6 +3,7 @@ package application;
 import lexer.Lexer;
 import lexer.token.Token;
 import lexer.token.TokenFormatter;
+import parser.RecognizerParser;
 import parser.ast.JsonAstPrinter;
 import parser.ast.ParserAst;
 import parser.ast.Ast;
@@ -17,10 +18,7 @@ import java.util.List;
 
 public class Application {
 
-    /*
-    Options (pored run i debug) -> Configuration Edit -> Working directory svoj resources folder
-    Ime fajla kao arg komandne linije
-     */
+
 
     public static void main(String[] args) {
         if (args.length != 1) {
@@ -36,11 +34,10 @@ public class Application {
 
             System.out.println(TokenFormatter.formatList(tokens));
 
-            /*
             RecognizerParser recognizerParser = new RecognizerParser(tokens);
-            recognizerParser.parseProgram(); // zavrsava se ako uspesna parsira, u suprotnom baci error
+            recognizerParser.parseProgram();
             System.out.println("Parsing finished successfully");
-            */
+
 
             ParserAst parser = new ParserAst(tokens);
             Ast.Program prog = parser.parseProgram();

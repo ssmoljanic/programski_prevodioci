@@ -84,9 +84,9 @@ public class Lexer {
             case '"'  -> stringLiteral();
             case '\'' -> charLiteral();
             case '/' -> {
-                if (sc.match('/')) {          // //
+                if (sc.match('/')) {
                     skipLineComment();
-                } else if (sc.match('*')) {   /* ... */
+                } else if (sc.match('*')) {
                     skipBlockComment();
                 } else {
                     throw error("Operator '/' nije dozvoljen. Koristi 'deljeno'.");
@@ -111,14 +111,12 @@ public class Lexer {
                 if (sc.match('|')) add(TokenType.OR);
                 else throw error("Očekivano ||");
             }
-               /*case '\n' -> tokens.add(new Token(
-                    TokenType.NEWLINE, "\n", null, sc.getStartLine(), sc.getStartCol(), sc.getStartCol()
-            ));*/
+
             case '\n',' ', '\r', '\t' -> {}
             default -> {
                 if (Character.isDigit(c)) number();
                 else if (isIdentStart(c)) identifier();
-                else throw error("Unexpected character");
+                else throw error("Neocekivani karakter");
             }
         }
     }
@@ -130,7 +128,7 @@ public class Lexer {
 
         if (sc.peek() == '.') {
             isDouble = true;
-            sc.advance(); // '.'
+            sc.advance();
             if (!Character.isDigit(sc.peek()))
                 throw error("Očekivan broj posle decimalne tačke");
             while (Character.isDigit(sc.peek())) sc.advance();

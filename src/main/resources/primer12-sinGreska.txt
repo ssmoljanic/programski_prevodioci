@@ -1,0 +1,10 @@
+glavniObrok() {
+    izvolite porudzbina brojStola je 1;
+
+    naplati(brojStola) {
+        sto 1:
+            konobar("Sto 1");
+        naplaceno:
+            konobar("Gotovo");
+
+}
