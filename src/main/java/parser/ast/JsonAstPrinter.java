@@ -10,7 +10,7 @@ public final class JsonAstPrinter implements
 
     private static final ObjectMapper M = new ObjectMapper();
 
-    // ===== PROGRAM =====
+
 
     public String print(Ast.Program p) {
         try {
@@ -52,7 +52,7 @@ public final class JsonAstPrinter implements
             rt.put("rank", f.returnType.rank);
             o.set("returnType", rt);
 
-            // params
+
             ArrayNode params = M.createArrayNode();
             for (Ast.Param p : f.params) {
                 ObjectNode po = M.createObjectNode();
@@ -65,7 +65,7 @@ public final class JsonAstPrinter implements
             }
             o.set("params", params);
 
-            // body
+
             ArrayNode body = M.createArrayNode();
             for (Stmt s : f.body) {
                 body.add(s.accept(this));
@@ -95,7 +95,7 @@ public final class JsonAstPrinter implements
         return u;
     }
 
-    // ===== Expr.Visitor =====
+
 
     @Override
     public JsonNode visitLiteral(Expr.Literal e) {
@@ -120,10 +120,10 @@ public final class JsonAstPrinter implements
             return o;
         }
 
-        // Ako je value == null, oslonimo se na token.type i token.lexeme
+
         switch (e.token.type) {
             case STRING_LIT -> {
-                // skini navodnike ako želiš "čist" tekst
+
                 String lex = e.token.lexeme;
                 String inner = lex;
                 if (lex.length() >= 2 && lex.charAt(0) == '"' && lex.charAt(lex.length() - 1) == '"') {
@@ -132,11 +132,11 @@ public final class JsonAstPrinter implements
                 o.put("string", inner);
             }
             case CHAR_LIT -> {
-                String lex = e.token.lexeme; // npr. 'a' ili '\n'
+                String lex = e.token.lexeme;
                 o.put("char", lex);
             }
             case INT_LIT -> {
-                // fallback, ako nekad ne napuniš literal u lexeru
+
                 try {
                     int v = Integer.parseInt(e.token.lexeme);
                     o.put("int", v);
@@ -145,7 +145,7 @@ public final class JsonAstPrinter implements
                 }
             }
             default -> {
-                // bilo šta drugo, samo izbaci kako piše u kodu
+
                 o.put("raw", e.token.lexeme);
             }
         }
@@ -225,7 +225,7 @@ public final class JsonAstPrinter implements
         return o;
     }
 
-    // ===== Stmt.Visitor =====
+
 
     @Override
     public JsonNode visitVarDecl(Stmt.VarDecl s) {
@@ -271,7 +271,7 @@ public final class JsonAstPrinter implements
     @Override
     public JsonNode visitPrint(Stmt.Print s) {
         ObjectNode o = M.createObjectNode();
-        o.put("stmt", "print"); // konobar(...)
+        o.put("stmt", "print");
         ArrayNode args = M.createArrayNode();
         for (Expr e : s.args) {
             args.add(e.accept(this));
@@ -283,7 +283,7 @@ public final class JsonAstPrinter implements
     @Override
     public JsonNode visitRead(Stmt.Read s) {
         ObjectNode o = M.createObjectNode();
-        o.put("stmt", "read"); // daceteMi(...)
+        o.put("stmt", "read");
         o.put("name", s.name.lexeme);
         return o;
     }
@@ -303,7 +303,7 @@ public final class JsonAstPrinter implements
         first.set("block", ifBody);
         o.set("ifArm", first);
 
-        // elseif grane (slobodanSto)
+        // elseif grane
         ArrayNode elseIfs = M.createArrayNode();
         for (Stmt.If.Arm arm : s.elseIfArms) {
             ObjectNode ar = M.createObjectNode();
@@ -317,7 +317,7 @@ public final class JsonAstPrinter implements
         }
         o.set("elseIfArms", elseIfs);
 
-        // else (jescemoNegdeDrugo)
+        // else
         if (s.elseBlock != null) {
             ArrayNode eb = M.createArrayNode();
             for (Stmt st : s.elseBlock) {

@@ -5,7 +5,7 @@ import java.util.List;
 
 public abstract class Expr {
 
-    // ==== VISITOR ====
+
     public interface Visitor<R> {
         R visitLiteral(Literal e);
         R visitIdent(Ident e);
@@ -19,8 +19,7 @@ public abstract class Expr {
 
     public abstract <R> R accept(Visitor<R> v);
 
-    // ==== LITERAL ====
-    // Sada podržava INT, DOUBLE, STRING, CHAR, USLUZEN/NEUSLUZEN...
+
     public static final class Literal extends Expr {
         public final Token token;   // INT_LIT, DOUBLE_LIT, STRING_LIT, CHAR_LIT, USLUZEN, NEUSLUZEN
         public final Object value;  // npr. Integer, Double, String, Character, Boolean
@@ -34,7 +33,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitLiteral(this); }
     }
 
-    // ==== IDENTIFIKATOR ====
+
     public static final class Ident extends Expr {
         public final Token name; // IDENT
 
@@ -44,8 +43,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitIdent(this); }
     }
 
-    // ==== INDEXIRANJE NIZA ====
-    // IDENT [expr] [expr] ...
+
     public static final class Index extends Expr {
         public final Token name;      // IDENT
         public final List<Expr> indices; // jedna ili više dimenzija
@@ -59,7 +57,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitIndex(this); }
     }
 
-    // ==== ( expr ) ====
+
     public static final class Grouping extends Expr {
         public final Expr inner;
 
@@ -69,8 +67,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitGrouping(this); }
     }
 
-    // ==== POZIV FUNKCIJE ====
-    // U Restoranu: IDENT "(" [ arg_list ] ")"
+    // poziv funk
     public static final class Call extends Expr {
         public final Token callee;  // IDENT – ime funkcije
         public final List<Expr> args;
@@ -84,8 +81,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitCall(this); }
     }
 
-    // ==== BINARNI OPERATORI ====
-    // UKUPNO, MANJE, PUTA, DELJENO, KUSUR, OR, AND, LT, LE, GT, GE, EQ, NEQ ...
+    //binarni operatori
     public static final class Binary extends Expr {
         public final Expr left;
         public final Token op;
@@ -101,8 +97,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitBinary(this); }
     }
 
-    // ==== UNARNI OPERATOR ====
-    // unary = (NOT | MANJE) unary | postfix;
+    //unarni
     public static final class Unary extends Expr {
         public final Token op;  // NOT ili MANJE (unary minus)
         public final Expr expr;
@@ -116,9 +111,7 @@ public abstract class Expr {
         public <R> R accept(Visitor<R> v) { return v.visitUnary(this); }
     }
 
-    // ==== DODELA ====
-    // assign_expr = lvalue ( "=" | JE ) assign_expr | or_expr;
-    // lvalue = IDENT { "[" expr "]" };
+
     public static final class Assign extends Expr {
         public final Expr target; // tipično Ident ili Index
         public final Token op;    // "=" ili JE

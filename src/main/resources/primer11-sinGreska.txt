@@ -1,0 +1,5 @@
+glavniObrok() {
+    izvolite porudzbina a je 3;
+
+    konobar("a je: ", a, );
+}

@@ -1,5 +1,4 @@
-glavniObrok(){
-    izvolite porudzbina broj-stola;
-    broj-stola je 5;
-    konobar(broj-stola);
+glavniObrok() {
+    izvolite porudzbina a je 5;
+    a @ 3;
 }

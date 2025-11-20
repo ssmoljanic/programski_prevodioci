@@ -1,8 +1,15 @@
-recept porudzbina saberi(porudzbina a, porudzbina b){
-    return a ukupno b;
+recept racun izracunajPopust(racun iznos) {
+    izvolite racun popust je iznos puta 0.1;
+    return popust;
 }
 
-glavniObrok(){
-    izvolite porudzbina z je saberi(7, 5);
-    konobar(z);
+glavniObrok() {
+    izvolite listaCekanja{racun}[3] racuni;
+    izvolite racun r je 100.0;
+
+    racuni[0] je r;
+    racuni[1] je izracunajPopust(r);
+    racuni[2] je r manje racuni[1];
+
+    konobar("Gotovo racunanje popusta.");
 }

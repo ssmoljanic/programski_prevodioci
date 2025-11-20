@@ -5,9 +5,7 @@ import java.util.List;
 
 public abstract class Stmt {
 
-    // ============================================================
-    // VISITOR
-    // ============================================================
+
     public interface Visitor<R> {
         R visitVarDecl(VarDecl s);
         R visitExprStmt(ExprStmt s);
@@ -24,9 +22,7 @@ public abstract class Stmt {
 
     public abstract <R> R accept(Visitor<R> v);
 
-    // ============================================================
-    // 1) VAR DECLARATION
-    // ============================================================
+
     public static final class VarDecl extends Stmt {
         public final Ast.Type type;
         public final List<Token> names;
@@ -41,9 +37,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitVarDecl(this); }
     }
 
-    // ============================================================
-    // 2) Expression as a statement:   expr ;
-    // ============================================================
+
     public static final class ExprStmt extends Stmt {
         public final Expr expr;
 
@@ -54,9 +48,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitExprStmt(this); }
     }
 
-    // ============================================================
-    // 3) Print:  konobar(expr1, expr2, ...)
-    // ============================================================
+
     public static final class Print extends Stmt {
         public final List<Expr> args;
 
@@ -67,9 +59,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitPrint(this); }
     }
 
-    // ============================================================
-    // 4) Read:  daceteMi(x);
-    // ============================================================
+
     public static final class Read extends Stmt {
         public final Token name; // IDENT
 
@@ -80,9 +70,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitRead(this); }
     }
 
-    // ============================================================
-    // 5) IF / ELSEIF / ELSE
-    // ============================================================
+
     public static final class If extends Stmt {
 
         public static final class Arm {
@@ -95,9 +83,9 @@ public abstract class Stmt {
             }
         }
 
-        public final Arm ifArm;                   // rezervisanSto(cond) { ... }
-        public final List<Arm> elseIfArms;        // slobodanSto(cond) { ... }
-        public final List<Stmt> elseBlock;        // jescemoNegdeDrugo { ... }   (može null)
+        public final Arm ifArm;
+        public final List<Arm> elseIfArms;
+        public final List<Stmt> elseBlock;
 
         public If(Arm ifArm, List<Arm> elseIfArms, List<Stmt> elseBlock) {
             this.ifArm = ifArm;
@@ -108,9 +96,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitIf(this); }
     }
 
-    // ============================================================
-    // 6) WHILE: dokNeDobijemObrok (cond) { ... }
-    // ============================================================
+
     public static final class While extends Stmt {
         public final Expr cond;
         public final List<Stmt> body;
@@ -123,9 +109,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitWhile(this); }
     }
 
-    // ============================================================
-    // 7) DO WHILE: radiNesto { ... } dokNeDobijemObrok(cond);
-    // ============================================================
+
     public static final class DoWhile extends Stmt {
         public final List<Stmt> body;
         public final Expr cond;
@@ -138,13 +122,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitDoWhile(this); }
     }
 
-    // ============================================================
-    // 8) FOR: novaTura(init ; cond ; updates) { ... }
-    //
-    // init = VarDecl | ExprStmt | null
-    // cond = Expr | null
-    // updates = List<Expr>
-    // ============================================================
+
     public static final class For extends Stmt {
         public final Stmt init;          // inicijalizacija
         public final Expr cond;          // uslov
@@ -161,9 +139,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitFor(this); }
     }
 
-    // ============================================================
-    // 9) SWITCH: naplati(expr) { sto label: stmts... ; naplaceno: stmts... }
-    // ============================================================
+
     public static final class Switch extends Stmt {
 
         public static final class CaseArm {
@@ -189,9 +165,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitSwitch(this); }
     }
 
-    // ============================================================
-    // 10) RETURN
-    // ============================================================
+
     public static final class Return extends Stmt {
         public final Expr expr; // može biti null
 
@@ -202,9 +176,7 @@ public abstract class Stmt {
         @Override public <R> R accept(Visitor<R> v) { return v.visitReturn(this); }
     }
 
-    // ============================================================
-    // 11) BLOCK: { stmt stmt stmt ... }
-    // ============================================================
+
     public static final class Block extends Stmt {
         public final List<Stmt> stmts;
 

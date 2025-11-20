@@ -1,8 +1,9 @@
-recept porudzbina stampaj(jelovnik msg){
-    konobar(msg);
-    return;
-}
+glavniObrok() {
+    izvolite porudzbina suma je 0;
 
-glavniObrok(){
-    stampaj("Pozdrav!");
+    novaTura(izvolite porudzbina i je 0; i < 5; i je i ukupno 1) {
+        suma je suma ukupno i;
+    }
+
+    konobar("Suma je: ", suma);
 }
