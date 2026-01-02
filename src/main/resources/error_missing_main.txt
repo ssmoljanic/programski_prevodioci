@@ -1,0 +1,6 @@
+# Greska: MISSING_MAIN
+# Program nema glavniObrok funkciju
+
+recept porudzbina saberi(porudzbina a, porudzbina b) {
+    return a ukupno b;
+}

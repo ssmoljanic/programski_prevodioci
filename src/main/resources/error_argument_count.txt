@@ -1,0 +1,11 @@
+# Greska: ARGUMENT_COUNT_MISMATCH
+# Poziv funkcije sa pogresnim brojem argumenata
+
+recept porudzbina saberi(porudzbina a, porudzbina b) {
+    return a ukupno b;
+}
+
+glavniObrok() {
+    izvolite porudzbina x je saberi(5);
+    konobar(x);
+}

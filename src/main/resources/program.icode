@@ -1,0 +1,16 @@
+0000: glavniObrok:
+0001:     push 0
+0002:     store x
+0003:     push 12.5
+0004:     cast_to_int
+0005:     store y
+0006:     read x
+0007:     load y
+0008:     load x
+0009:     add
+0010:     store y
+0011:     load y
+0012:     pop
+0013:     load y
+0014:     print
+0015:     halt

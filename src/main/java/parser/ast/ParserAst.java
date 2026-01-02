@@ -577,6 +577,7 @@ public final class ParserAst {
     //      INT_LIT | DOUBLE_LIT | STRING_LIT | CHAR_LIT
     //    | USLUZEN | NEUSLUZEN
     //    | IDENT
+    //    | "(" type ")" unary    (kastovanje)
     //    | "(" expr ")" ;
     private Expr parsePrimary() {
         if (match(INT_LIT)) {
@@ -608,6 +609,20 @@ public final class ParserAst {
             return new Expr.Ident(id);
         }
         if (match(LPAREN)) {
+            Token parenToken = previous();
+
+            // Proveri da li je kastovanje: (tip) expr
+            // Kastovanje počinje sa tipom (PORUDZBINA, RACUN, PREDJELO, USLUZENNEUSLUZEN, JELOVNIK, LISTACEKANJA)
+            if (check(PORUDZBINA) || check(RACUN) || check(PREDJELO) ||
+                check(USLUZENNEUSLUZEN) || check(JELOVNIK) || check(LISTACEKANJA)) {
+
+                Ast.Type targetType = parseType();
+                consume(RPAREN);
+                Expr expr = parseUnary();  // Kastovanje ima viši prioritet
+                return new Expr.Cast(targetType, expr, parenToken);
+            }
+
+            // Inače je grupiranje: (expr)
             Expr inner = parseExpr();
             consume(RPAREN);
             return new Expr.Grouping(inner);

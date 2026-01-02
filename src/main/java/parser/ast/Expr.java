@@ -15,6 +15,7 @@ public abstract class Expr {
         R visitBinary(Binary e);
         R visitUnary(Unary e);
         R visitAssign(Assign e);
+        R visitCast(Cast e);  // NOVO: kastovanje
     }
 
     public abstract <R> R accept(Visitor<R> v);
@@ -125,5 +126,22 @@ public abstract class Expr {
 
         @Override
         public <R> R accept(Visitor<R> v) { return v.visitAssign(this); }
+    }
+
+    // NOVO: Kastovanje - (tip) izraz
+    // Primer: (racun) x   ili   (porudzbina) 3.0
+    public static final class Cast extends Expr {
+        public final Ast.Type targetType;  // Tip u koji kastujemo
+        public final Expr expr;            // Izraz koji kastujemo
+        public final Token parenToken;     // Token '(' za lokaciju greške
+
+        public Cast(Ast.Type targetType, Expr expr, Token parenToken) {
+            this.targetType = targetType;
+            this.expr = expr;
+            this.parenToken = parenToken;
+        }
+
+        @Override
+        public <R> R accept(Visitor<R> v) { return v.visitCast(this); }
     }
 }

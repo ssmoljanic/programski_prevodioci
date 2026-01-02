@@ -1,0 +1,11 @@
+# Greska: RETURN_TYPE_MISMATCH
+# Funkcija vraca tip koji ne odgovara deklarisanom povratnom tipu
+
+recept porudzbina vratiString() {
+    return "ovo je string";
+}
+
+glavniObrok() {
+    izvolite porudzbina x je vratiString();
+    konobar(x);
+}

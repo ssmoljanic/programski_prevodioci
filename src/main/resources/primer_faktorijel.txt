@@ -1,0 +1,18 @@
+# Primer: Faktorijel
+# Racuna faktorijel broja
+
+recept porudzbina faktorijel(porudzbina n) {
+    rezervisanSto(n <= 1) {
+        return 1;
+    }
+    return n puta faktorijel(n manje 1);
+}
+
+glavniObrok() {
+    izvolite porudzbina broj;
+    konobar("Unesite broj: ");
+    daceteMi(broj);
+
+    izvolite porudzbina rezultat je faktorijel(broj);
+    konobar("Faktorijel od ", broj, " je ", rezultat);
+}

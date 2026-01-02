@@ -1,0 +1,33 @@
+# Primer: Jednostavan kalkulator
+# Demonstrira switch/case (naplati/sto)
+
+glavniObrok() {
+    izvolite porudzbina a;
+    izvolite porudzbina b;
+    izvolite porudzbina opcija;
+
+    konobar("Unesite prvi broj: ");
+    daceteMi(a);
+    konobar("Unesite drugi broj: ");
+    daceteMi(b);
+
+    konobar("Izaberite operaciju:");
+    konobar("1 - Sabiranje");
+    konobar("2 - Oduzimanje");
+    konobar("3 - Mnozenje");
+    konobar("4 - Deljenje");
+    daceteMi(opcija);
+
+    naplati(opcija) {
+        sto 1:
+            konobar("Rezultat: ", a ukupno b);
+        sto 2:
+            konobar("Rezultat: ", a manje b);
+        sto 3:
+            konobar("Rezultat: ", a puta b);
+        sto 4:
+            konobar("Rezultat: ", a deljeno b);
+        naplaceno:
+            konobar("Nepoznata opcija");
+    }
+}
