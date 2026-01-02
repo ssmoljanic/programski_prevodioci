@@ -1,0 +1,8 @@
+# Greska: DUPLICATE_VARIABLE
+# Deklaracija promenljive koja vec postoji u istom bloku
+
+glavniObrok() {
+    izvolite porudzbina x je 5;
+    izvolite porudzbina x je 10;
+    konobar(x);
+}

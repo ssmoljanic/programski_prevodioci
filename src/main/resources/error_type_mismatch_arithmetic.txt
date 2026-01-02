@@ -1,0 +1,9 @@
+# Greska: TYPE_MISMATCH_ARITHMETIC
+# Aritmeticka operacija sa nekompatibilnim tipovima
+
+glavniObrok() {
+    izvolite porudzbina x je 5;
+    izvolite predjelo s je "tekst";
+    izvolite porudzbina rezultat je x ukupno s;
+    konobar(rezultat);
+}

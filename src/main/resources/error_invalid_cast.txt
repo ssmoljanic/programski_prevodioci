@@ -1,0 +1,8 @@
+# Greska: INVALID_CAST
+# Pokusaj kastovanja iz nekompatibilnog tipa
+
+glavniObrok() {
+    izvolite predjelo s je "tekst";
+    izvolite porudzbina x je (porudzbina) s;
+    konobar(x);
+}

@@ -1,0 +1,9 @@
+# Greska: TYPE_MISMATCH_CONDITION
+# Uslov nije logicka vrednost (boolean)
+
+glavniObrok() {
+    izvolite porudzbina x je 5;
+    rezervisanSto(x) {
+        konobar("x nije nula");
+    }
+}

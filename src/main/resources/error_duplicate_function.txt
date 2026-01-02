@@ -1,0 +1,14 @@
+# Greska: DUPLICATE_FUNCTION
+# Definisanje funkcije koja vec postoji
+
+recept porudzbina dvostruko(porudzbina x) {
+    return x puta 2;
+}
+
+recept porudzbina dvostruko(porudzbina y) {
+    return y puta 2;
+}
+
+glavniObrok() {
+    konobar(dvostruko(5));
+}

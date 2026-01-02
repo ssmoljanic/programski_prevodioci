@@ -456,13 +456,23 @@ public final class RecognizerParser {
     // primary =
     //    INT_LIT | DOUBLE_LIT | STRING_LIT | CHAR_LIT
     //  | USLUZEN | NEUSLUZEN | TRUE | FALSE
-    //  | IDENT | "(" expr ")" ;
+    //  | IDENT
+    //  | "(" type ")" unary   (kastovanje)
+    //  | "(" expr ")" ;
     private void parsePrimary() {
         if (match(INT_LIT, DOUBLE_LIT, STRING_LIT, CHAR_LIT,
                 USLUZEN, NEUSLUZEN, TRUE, FALSE, IDENT)) {
             return;
         }
         if (match(LPAREN)) {
+            // Proveri da li je kastovanje: (tip) expr
+            if (startsBaseType() || check(LISTACEKANJA)) {
+                parseType();
+                consume(RPAREN, "Ocekivana ')' posle tipa u kastovanju.");
+                parseUnary();  // Kastovanje ima viši prioritet
+                return;
+            }
+            // Inače je grupiranje: (expr)
             parseExpr();
             consume(RPAREN, "Ocekivana ')' u zagradi izraza.");
             return;

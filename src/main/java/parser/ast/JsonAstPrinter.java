@@ -4,11 +4,41 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.*;
 
+import java.util.Map;
+
 public final class JsonAstPrinter implements
         Expr.Visitor<JsonNode>,
         Stmt.Visitor<JsonNode> {
 
     private static final ObjectMapper M = new ObjectMapper();
+
+    // FAZA 4: Mapa tipova za izraze (može biti null ako nema tipiziranja)
+    private Map<Expr, Ast.Type> exprTypes = null;
+
+    /**
+     * FAZA 4: Postavlja mapu tipova za tipizirano stablo.
+     */
+    public void setExprTypes(Map<Expr, Ast.Type> exprTypes) {
+        this.exprTypes = exprTypes;
+    }
+
+    /**
+     * FAZA 4: Dodaje tip izraza u JSON čvor ako postoji.
+     */
+    private void addResolvedType(ObjectNode node, Expr expr) {
+        if (exprTypes != null && exprTypes.containsKey(expr)) {
+            Ast.Type type = exprTypes.get(expr);
+            ObjectNode typeNode = M.createObjectNode();
+            if (type == null || type.kind == Ast.Type.Kind.VOID) {
+                typeNode.put("base", "void");
+                typeNode.put("rank", 0);
+            } else {
+                typeNode.put("base", type.baseType != null ? type.baseType.lexeme : "void");
+                typeNode.put("rank", type.rank);
+            }
+            node.set("resolvedType", typeNode);
+        }
+    }
 
 
 
@@ -117,6 +147,7 @@ public final class JsonAstPrinter implements
             } else {
                 o.put("raw", String.valueOf(e.value));
             }
+            addResolvedType(o, e);  // FAZA 4
             return o;
         }
 
@@ -150,6 +181,7 @@ public final class JsonAstPrinter implements
             }
         }
 
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -159,6 +191,7 @@ public final class JsonAstPrinter implements
         ObjectNode o = M.createObjectNode();
         o.put("type", "ident");
         o.put("name", e.name.lexeme);
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -172,6 +205,7 @@ public final class JsonAstPrinter implements
             idx.add(ex.accept(this));
         }
         o.set("indices", idx);
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -180,6 +214,7 @@ public final class JsonAstPrinter implements
         ObjectNode o = M.createObjectNode();
         o.put("type", "group");
         o.set("expr", e.inner.accept(this));
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -193,6 +228,7 @@ public final class JsonAstPrinter implements
             args.add(a.accept(this));
         }
         o.set("args", args);
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -203,6 +239,7 @@ public final class JsonAstPrinter implements
         o.put("op", e.op.lexeme);
         o.set("left", e.left.accept(this));
         o.set("right", e.right.accept(this));
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -212,6 +249,7 @@ public final class JsonAstPrinter implements
         o.put("type", "unary");
         o.put("op", e.op.lexeme);
         o.set("expr", e.expr.accept(this));
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
@@ -222,9 +260,30 @@ public final class JsonAstPrinter implements
         o.set("target", e.target.accept(this));
         o.put("op", e.op.lexeme);
         o.set("value", e.value.accept(this));
+        addResolvedType(o, e);  // FAZA 4
         return o;
     }
 
+    @Override
+    public JsonNode visitCast(Expr.Cast e) {
+        ObjectNode o = M.createObjectNode();
+        o.put("type", "cast");
+
+        // Ciljni tip
+        ObjectNode targetType = M.createObjectNode();
+        if (e.targetType.kind == Ast.Type.Kind.VOID) {
+            targetType.put("base", "void");
+        } else {
+            targetType.put("base", e.targetType.baseType.lexeme);
+        }
+        targetType.put("rank", e.targetType.rank);
+        o.set("targetType", targetType);
+
+        // Izraz koji se kastuje
+        o.set("expr", e.expr.accept(this));
+        addResolvedType(o, e);  // FAZA 4
+        return o;
+    }
 
 
     @Override

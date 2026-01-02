@@ -1,0 +1,41 @@
+# Primer: Rad sa razlicitim tipovima
+# Demonstrira kastovanje i sve osnovne tipove
+
+glavniObrok() {
+    # Celobrojni tip (porudzbina)
+    izvolite porudzbina celiBroj je 42;
+
+    # Decimalni tip (racun)
+    izvolite racun decimalniBroj je 3.14;
+
+    # String tip (predjelo)
+    izvolite predjelo tekst je "Dobrodosli u restoran!";
+
+    # Karakter tip (jelovnik)
+    izvolite jelovnik slovo je 'A';
+
+    # Boolean tip (usluzenNeusluzen)
+    izvolite usluzenNeusluzen zastavica je usluzen;
+
+    # Ispis svih tipova
+    konobar("Ceo broj: ", celiBroj);
+    konobar("Decimalni broj: ", decimalniBroj);
+    konobar("Tekst: ", tekst);
+    konobar("Slovo: ", slovo);
+
+    rezervisanSto(zastavica) {
+        konobar("Zastavica je usluzen (true)");
+    }
+
+    # Kastovanje double u int
+    izvolite porudzbina zaokruzeno je (porudzbina) decimalniBroj;
+    konobar("Zaokruzeno 3.14 = ", zaokruzeno);
+
+    # Kastovanje int u double
+    izvolite racun promovisano je (racun) celiBroj;
+    konobar("Promovisano 42 = ", promovisano);
+
+    # Aritmetika sa kastovanjem
+    izvolite racun zbir je promovisano ukupno decimalniBroj;
+    konobar("42.0 + 3.14 = ", zbir);
+}

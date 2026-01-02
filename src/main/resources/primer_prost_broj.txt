@@ -1,0 +1,35 @@
+# Primer: Provera prostog broja
+# Demonstrira logicke operatore i do-while petlju
+
+recept usluzenNeusluzen jeProst(porudzbina n) {
+    rezervisanSto(n <= 1) {
+        return neusluzen;
+    }
+    rezervisanSto(n <= 3) {
+        return usluzen;
+    }
+    rezervisanSto((n kusur 2) == 0) {
+        return neusluzen;
+    }
+
+    izvolite porudzbina i je 3;
+    dokNeDobijemObrok(i puta i <= n) {
+        rezervisanSto((n kusur i) == 0) {
+            return neusluzen;
+        }
+        i je i ukupno 2;
+    }
+    return usluzen;
+}
+
+glavniObrok() {
+    izvolite porudzbina broj;
+    konobar("Unesite broj: ");
+    daceteMi(broj);
+
+    rezervisanSto(jeProst(broj)) {
+        konobar(broj, " je prost broj");
+    } jescemoNegdeDrugo {
+        konobar(broj, " nije prost broj");
+    }
+}
