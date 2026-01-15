@@ -1,5 +1,4 @@
-# Greska: TYPE_MISMATCH_ASSIGNMENT
-# Dodela vrednosti pogresnog tipa
+
 
 glavniObrok() {
     izvolite porudzbina x;

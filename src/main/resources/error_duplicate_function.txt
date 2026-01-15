@@ -1,5 +1,3 @@
-# Greska: DUPLICATE_FUNCTION
-# Definisanje funkcije koja vec postoji
 
 recept porudzbina dvostruko(porudzbina x) {
     return x puta 2;

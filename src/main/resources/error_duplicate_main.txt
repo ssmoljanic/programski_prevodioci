@@ -1,5 +1,3 @@
-# Greska: DUPLICATE_MAIN
-# Program ima dve glavniObrok funkcije
 
 glavniObrok() {
     konobar("Prvi main");

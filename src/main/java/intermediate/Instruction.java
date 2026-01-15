@@ -1,91 +1,55 @@
 package intermediate;
 
-/**
- * Reprezentacija jedne instrukcije međukoda.
- *
- * Stek mašina koristi sledeće operacije:
- * - PUSH vrednost: stavlja vrednost na stek
- * - POP: skida vrednost sa steka
- * - LOAD ime: učitava vrednost promenljive na stek
- * - STORE ime: skida vrednost sa steka i čuva u promenljivu
- * - ADD, SUB, MUL, DIV, MOD: aritmetičke operacije (skidaju 2, stavljaju 1)
- * - EQ, NEQ, LT, LE, GT, GE: relacione operacije
- * - AND, OR: logičke operacije (skidaju 2, stavljaju 1)
- * - NOT: logička negacija (skida 1, stavlja 1)
- * - NEG: aritmetička negacija
- * - JMP labela: bezuslovni skok
- * - JZ labela: skok ako je vrh steka 0 (false)
- * - JNZ labela: skok ako vrh nije 0 (true)
- * - LABEL labela: definicija labele
- * - CALL ime, argc: poziv funkcije sa argc argumenata
- * - RET: povratak iz funkcije
- * - PRINT: štampa vrednost sa vrha steka
- * - READ ime: učitava vrednost sa ulaza u promenljivu
- * - CAST_TO_INT: konvertuje double u int
- * - CAST_TO_DOUBLE: konvertuje int u double
- * - HALT: zaustavljanje programa
- */
 public class Instruction {
 
     public enum OpCode {
-        // Stek operacije
-        PUSH,           // push vrednost
-        POP,            // pop (odbacuje vrh)
+        PUSH,
+        POP,
 
-        // Promenljive
-        LOAD,           // load ime - učitava promenljivu na stek
-        STORE,          // store ime - čuva vrh steka u promenljivu
-        ALOAD,          // aload ime, dimenzija - učitava element niza
-        ASTORE,         // astore ime, dimenzija - čuva u element niza
+        LOAD,
+        STORE,
+        ALOAD,
+        ASTORE,
 
-        // Aritmetičke operacije
-        ADD,            // sabiranje
-        SUB,            // oduzimanje
-        MUL,            // množenje
-        DIV,            // deljenje
-        MOD,            // ostatak pri deljenju
-        NEG,            // negacija (-x)
+        ADD,
+        SUB,
+        MUL,
+        DIV,
+        MOD,
+        NEG,
 
-        // Relacione operacije
-        EQ,             // jednako
-        NEQ,            // različito
-        LT,             // manje
-        LE,             // manje ili jednako
-        GT,             // veće
-        GE,             // veće ili jednako
+        EQ,
+        NEQ,
+        LT,
+        LE,
+        GT,
+        GE,
 
-        // Logičke operacije
-        AND,            // logičko i
-        OR,             // logičko ili
-        NOT,            // logička negacija
+        AND,
+        OR,
+        NOT,
 
-        // Kontrola toka
-        JMP,            // bezuslovni skok
-        JZ,             // skok ako je 0 (false)
-        JNZ,            // skok ako nije 0 (true)
-        LABEL,          // definicija labele
+        JMP,
+        JZ,
+        JNZ,
+        LABEL,
 
-        // Funkcije
-        CALL,           // poziv funkcije
-        RET,            // povratak iz funkcije
+        CALL,
+        RET,
 
-        // Ulaz/izlaz
-        PRINT,          // štampanje
-        READ,           // čitanje
+        PRINT,
+        READ,
 
-        // Konverzije tipova
-        CAST_TO_INT,    // double -> int
-        CAST_TO_DOUBLE, // int -> double
+        CAST_TO_INT,
+        CAST_TO_DOUBLE,
 
-        // Kontrola programa
-        HALT            // kraj programa
+        HALT
     }
 
     public final OpCode opCode;
-    public final Object operand;    // vrednost, ime promenljive, ili labela
-    public final Object operand2;   // drugi operand (za CALL - broj argumenata)
+    public final Object operand;
+    public final Object operand2;
 
-    // IP (Instruction Pointer) - adresa instrukcije u programu
     private int address = -1;
 
     public Instruction(OpCode opCode) {
@@ -115,15 +79,9 @@ public class Instruction {
         return toString(false, null);
     }
 
-    /**
-     * Formatira instrukciju sa opcionalnom IP adresom.
-     * @param showAddress da li da prikaže IP adresu
-     * @param labelAddresses mapa labela -> adresa (za resoluciju skokova)
-     */
     public String toString(boolean showAddress, java.util.Map<String, Integer> labelAddresses) {
         StringBuilder sb = new StringBuilder();
 
-        // IP adresa (4 cifre)
         if (showAddress && address >= 0) {
             sb.append(String.format("%04d: ", address));
         }
@@ -133,7 +91,6 @@ public class Instruction {
         } else {
             sb.append("    ").append(opCode.name().toLowerCase());
             if (operand != null) {
-                // Za JMP, JZ, JNZ - prikaži i adresu labele ako je dostupna
                 if (labelAddresses != null && isJumpInstruction() && operand instanceof String) {
                     Integer targetAddr = labelAddresses.get(operand);
                     if (targetAddr != null) {
@@ -153,9 +110,6 @@ public class Instruction {
         return sb.toString();
     }
 
-    /**
-     * Da li je ovo instrukcija skoka?
-     */
     public boolean isJumpInstruction() {
         return opCode == OpCode.JMP || opCode == OpCode.JZ || opCode == OpCode.JNZ;
     }

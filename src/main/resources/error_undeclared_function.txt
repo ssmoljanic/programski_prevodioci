@@ -1,5 +1,3 @@
-# Greska: UNDECLARED_FUNCTION
-# Pozivanje funkcije koja nije definisana
 
 glavniObrok() {
     izvolite porudzbina x je nepostojecaFunkcija(5);

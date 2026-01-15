@@ -1,5 +1,3 @@
-# Greska: ARGUMENT_TYPE_MISMATCH
-# Poziv funkcije sa argumentom pogresnog tipa
 
 recept porudzbina dvostruko(porudzbina x) {
     return x puta 2;

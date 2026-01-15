@@ -9,31 +9,10 @@
         "rank" : 0
       },
       "vars" : [ {
-        "name" : "x",
-        "init" : null
-      } ]
-    }, {
-      "stmt" : "varDecl",
-      "type" : {
-        "base" : "porudzbina",
-        "rank" : 0
-      },
-      "vars" : [ {
-        "name" : "y",
+        "name" : "opcija",
         "init" : {
-          "type" : "cast",
-          "targetType" : {
-            "base" : "porudzbina",
-            "rank" : 0
-          },
-          "expr" : {
-            "type" : "literal",
-            "raw" : "12.5",
-            "resolvedType" : {
-              "base" : "racun",
-              "rank" : 0
-            }
-          },
+          "type" : "literal",
+          "int" : 0,
           "resolvedType" : {
             "base" : "porudzbina",
             "rank" : 0
@@ -41,59 +20,105 @@
         }
       } ]
     }, {
-      "stmt" : "read",
-      "name" : "x"
-    }, {
-      "stmt" : "exprStmt",
-      "expr" : {
-        "type" : "assignExpr",
-        "target" : {
+      "stmt" : "while",
+      "cond" : {
+        "type" : "binary",
+        "op" : "!=",
+        "left" : {
           "type" : "ident",
-          "name" : "y",
+          "name" : "opcija",
           "resolvedType" : {
             "base" : "porudzbina",
             "rank" : 0
           }
         },
-        "op" : "je",
-        "value" : {
-          "type" : "binary",
-          "op" : "ukupno",
-          "left" : {
-            "type" : "ident",
-            "name" : "y",
-            "resolvedType" : {
-              "base" : "porudzbina",
-              "rank" : 0
-            }
-          },
-          "right" : {
-            "type" : "ident",
-            "name" : "x",
-            "resolvedType" : {
-              "base" : "porudzbina",
-              "rank" : 0
-            }
-          },
+        "right" : {
+          "type" : "literal",
+          "int" : 0,
           "resolvedType" : {
             "base" : "porudzbina",
             "rank" : 0
           }
         },
         "resolvedType" : {
-          "base" : "porudzbina",
+          "base" : "usluzenNeusluzen",
           "rank" : 0
         }
-      }
-    }, {
-      "stmt" : "print",
-      "args" : [ {
-        "type" : "ident",
-        "name" : "y",
-        "resolvedType" : {
-          "base" : "porudzbina",
-          "rank" : 0
-        }
+      },
+      "body" : [ {
+        "stmt" : "print",
+        "args" : [ {
+          "type" : "literal",
+          "string" : "1-supa 2-glavno 3-dezert",
+          "resolvedType" : {
+            "base" : "predjelo",
+            "rank" : 0
+          }
+        } ]
+      }, {
+        "stmt" : "read",
+        "name" : "opcija"
+      }, {
+        "stmt" : "switch",
+        "expr" : {
+          "type" : "ident",
+          "name" : "opcija",
+          "resolvedType" : {
+            "base" : "porudzbina",
+            "rank" : 0
+          }
+        },
+        "cases" : [ {
+          "label" : "1",
+          "body" : [ {
+            "stmt" : "print",
+            "args" : [ {
+              "type" : "literal",
+              "string" : "supa",
+              "resolvedType" : {
+                "base" : "predjelo",
+                "rank" : 0
+              }
+            } ]
+          } ]
+        }, {
+          "label" : "2",
+          "body" : [ {
+            "stmt" : "print",
+            "args" : [ {
+              "type" : "literal",
+              "string" : "glavno",
+              "resolvedType" : {
+                "base" : "predjelo",
+                "rank" : 0
+              }
+            } ]
+          } ]
+        }, {
+          "label" : "3",
+          "body" : [ {
+            "stmt" : "print",
+            "args" : [ {
+              "type" : "literal",
+              "string" : "dezert",
+              "resolvedType" : {
+                "base" : "predjelo",
+                "rank" : 0
+              }
+            } ]
+          } ]
+        } ],
+        "default" : [ {
+          "stmt" : "print",
+          "args" : [ {
+            "type" : "literal",
+            "string" : "kraj",
+            "resolvedType" : {
+              "base" : "predjelo",
+              "rank" : 0
+            }
+          } ]
+        } ]
       } ]
     } ]
   } ]

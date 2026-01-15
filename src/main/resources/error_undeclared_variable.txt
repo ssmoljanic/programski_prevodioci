@@ -1,5 +1,3 @@
-# Greska: UNDECLARED_VARIABLE
-# Koriscenje promenljive koja nije deklarisana
 
 glavniObrok() {
     konobar(x);

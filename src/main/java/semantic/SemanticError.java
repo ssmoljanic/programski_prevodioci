@@ -1,92 +1,34 @@
 package semantic;
 
-/**
- * Predstavlja semantičku grešku pronađenu tokom analize.
- *
- * Sadrži:
- * - Tip greške (iz specifikacije)
- * - Poruku koja opisuje grešku
- * - Lokaciju u izvornom kodu (linija, kolona)
- */
 public class SemanticError extends RuntimeException {
 
-    // ===== TIPOVI GREŠAKA =====
-    // Svi tipovi grešaka iz specifikacije zadatka.
-    // Zašto enum? Da imamo strogo definisan skup mogućih grešaka
-    // i da možemo lako dodati specifično rukovanje za svaku.
     public enum ErrorType {
 
-        // --- Greške vezane za main funkciju ---
-        MISSING_MAIN(
-            "Nepostojanje main funkcije"
-        ),
-        DUPLICATE_MAIN(
-            "Više od jedne deklaracije main funkcije"
-        ),
+        MISSING_MAIN("Nepostojanje main funkcije"),
+        DUPLICATE_MAIN("Više od jedne deklaracije main funkcije"),
 
-        // --- Greške vezane za deklaracije ---
-        UNDECLARED_VARIABLE(
-            "Korišćenje promenljive koja prethodno nije deklarisana"
-        ),
-        UNDECLARED_FUNCTION(
-            "Korišćenje funkcije koja prethodno nije deklarisana"
-        ),
-        DUPLICATE_VARIABLE(
-            "Deklaracija promenljive koja već postoji u tom okruženju"
-        ),
-        DUPLICATE_FUNCTION(
-            "Deklaracija funkcije koja već postoji"
-        ),
+        UNDECLARED_VARIABLE("Korišćenje promenljive koja prethodno nije deklarisana"),
+        UNDECLARED_FUNCTION("Korišćenje funkcije koja prethodno nije deklarisana"),
+        DUPLICATE_VARIABLE("Deklaracija promenljive koja već postoji u tom okruženju"),
+        DUPLICATE_FUNCTION("Deklaracija funkcije koja već postoji"),
 
-        // --- Greške vezane za tipove ---
-        INVALID_CAST(
-            "Neispravno kastovanje"
-        ),
-        TYPE_MISMATCH_ARITHMETIC(
-            "Nepodudaranje tipova podataka u aritmetičkim izrazima"
-        ),
-        TYPE_MISMATCH_RELATIONAL(
-            "U izrazima sa relacionim operatorima operandi nisu brojevi"
-        ),
-        TYPE_MISMATCH_LOGICAL(
-            "U logičkim izrazima operandi i/ili rezultat nisu logički izrazi"
-        ),
-        TYPE_MISMATCH_CONDITION(
-            "Neispravno korišćenje grananja i petlji - uslov nije logička vrednost"
-        ),
-        TYPE_MISMATCH_ARRAY_ELEMENT(
-            "Dodavanje vrednosti u niz pogrešnog tipa"
-        ),
-        TYPE_MISMATCH_ASSIGNMENT(
-            "Nepodudaranje tipova pri dodeli vrednosti"
-        ),
+        INVALID_CAST("Neispravno kastovanje"),
+        TYPE_MISMATCH_ARITHMETIC("Nepodudaranje tipova podataka u aritmetičkim izrazima"),
+        TYPE_MISMATCH_RELATIONAL("U izrazima sa relacionim operatorima operandi nisu brojevi"),
+        TYPE_MISMATCH_LOGICAL("U logičkim izrazima operandi i/ili rezultat nisu logički izrazi"),
+        TYPE_MISMATCH_CONDITION("Neispravno korišćenje grananja i petlji - uslov nije logička vrednost"),
+        TYPE_MISMATCH_ARRAY_ELEMENT("Dodavanje vrednosti u niz pogrešnog tipa"),
+        TYPE_MISMATCH_ASSIGNMENT("Nepodudaranje tipova pri dodeli vrednosti"),
 
-        // --- Greške vezane za funkcije ---
-        RETURN_TYPE_MISMATCH(
-            "Nepodudaranje povratnog tipa funkcije sa povratnom vrednošću"
-        ),
-        ARGUMENT_COUNT_MISMATCH(
-            "Nepodudaranje broja parametara funkcije i argumenata pri pozivu"
-        ),
-        ARGUMENT_TYPE_MISMATCH(
-            "Nepodudaranje tipova parametara funkcije i argumenata pri pozivu"
-        ),
-        FUNCTION_RETURN_TYPE_MISMATCH(
-            "Nepodudaranje povratnog tipa funkcije sa tipom podataka u izrazu"
-        ),
+        RETURN_TYPE_MISMATCH("Nepodudaranje povratnog tipa funkcije sa povratnom vrednošću"),
+        ARGUMENT_COUNT_MISMATCH("Nepodudaranje broja parametara funkcije i argumenata pri pozivu"),
+        ARGUMENT_TYPE_MISMATCH("Nepodudaranje tipova parametara funkcije i argumenata pri pozivu"),
+        FUNCTION_RETURN_TYPE_MISMATCH("Nepodudaranje povratnog tipa funkcije sa tipom podataka u izrazu"),
 
-        // --- Greške vezane za indeksiranje i pozive ---
-        INVALID_INDEX_TARGET(
-            "Pristup preko indeksa u tipu podatka koji ne podržava indeksiranje"
-        ),
-        INVALID_CALL_TARGET(
-            "Poziv objekta kao funkcije"
-        ),
-        INVALID_INDEX_TYPE(
-            "Indeks mora biti celobrojnog tipa"
-        );
+        INVALID_INDEX_TARGET("Pristup preko indeksa u tipu podatka koji ne podržava indeksiranje"),
+        INVALID_CALL_TARGET("Poziv objekta kao funkcije"),
+        INVALID_INDEX_TYPE("Indeks mora biti celobrojnog tipa");
 
-        // Opis greške (za korisnika)
         private final String description;
 
         ErrorType(String description) {
@@ -98,22 +40,10 @@ public class SemanticError extends RuntimeException {
         }
     }
 
-    // ===== ATRIBUTI =====
-
     private final ErrorType type;
     private final int line;
     private final int column;
 
-    // ===== KONSTRUKTORI =====
-
-    /**
-     * Kreira semantičku grešku sa svim informacijama.
-     *
-     * @param type    Tip greške
-     * @param message Detaljna poruka
-     * @param line    Linija u izvornom kodu
-     * @param column  Kolona u izvornom kodu
-     */
     public SemanticError(ErrorType type, String message, int line, int column) {
         super(message);
         this.type = type;
@@ -121,14 +51,9 @@ public class SemanticError extends RuntimeException {
         this.column = column;
     }
 
-    /**
-     * Kreira semantičku grešku bez tačne lokacije (npr. MISSING_MAIN).
-     */
     public SemanticError(ErrorType type, String message) {
         this(type, message, 0, 0);
     }
-
-    // ===== GETTERI =====
 
     public ErrorType getType() {
         return type;
@@ -142,15 +67,6 @@ public class SemanticError extends RuntimeException {
         return column;
     }
 
-    // ===== FORMATIRANA PORUKA =====
-
-    /**
-     * Vraća formatiranu poruku o grešci za ispis korisniku.
-     *
-     * Format:
-     * SEMANTIČKA GREŠKA [linija X, kolona Y]: Opis
-     * Detalji: poruka
-     */
     public String getFormattedMessage() {
         StringBuilder sb = new StringBuilder();
         sb.append("SEMANTIČKA GREŠKA");
@@ -173,10 +89,6 @@ public class SemanticError extends RuntimeException {
     public String toString() {
         return getFormattedMessage();
     }
-
-    // ===== FACTORY METODE =====
-    // Zašto factory metode? Da olakšamo kreiranje čestih grešaka
-    // i da osiguramo konzistentne poruke.
 
     public static SemanticError missingMain() {
         return new SemanticError(
