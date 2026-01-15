@@ -10,43 +10,19 @@ import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Semantički analizator - prolazi kroz AST i proverava semantičku ispravnost.
- *
- * FAZA 1: Provera okruženja (scope)
- * - Da li postoji glavniObrok?
- * - Da li su sve promenljive/funkcije deklarisane pre korišćenja?
- * - Da li postoje duplikati u istom scope-u?
- *
- * FAZA 2: Provera tipova (type checking)
- * - Da li se tipovi slažu u izrazima?
- * - Da li su uslovi logičkog tipa?
- * - Da li se tipovi argumenata slažu sa parametrima?
- *
- * Koristi Visitor pattern za obilazak AST-a.
- */
 public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> {
-
-    // ===== ATRIBUTI =====
 
     private final SymbolTable symbolTable;
     private boolean hasMain = false;
     private Symbol currentFunction = null;
 
-    // FAZA 4: Mapa koja čuva tipove za sve izraze
-    // Koristi IdentityHashMap jer poredimo reference objekata, ne sadržaj
     private final Map<Expr, Ast.Type> exprTypes = new IdentityHashMap<>();
-
-    // ===== KONSTRUKTOR =====
 
     public SemanticAnalyzer() {
         this.symbolTable = new SymbolTable();
     }
 
-    // ===== GLAVNA METODA =====
-
     public void analyze(Ast.Program program) {
-        // PRVI PROLAZ: Registruj sve funkcije
         for (Ast.TopItem item : program.items) {
             if (item instanceof Ast.FuncDef funcDef) {
                 registerFunction(funcDef);
@@ -59,13 +35,10 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             throw SemanticError.missingMain();
         }
 
-        // DRUGI PROLAZ: Analiziraj tela funkcija i globalne promenljive
         for (Ast.TopItem item : program.items) {
             analyzeTopItem(item);
         }
     }
-
-    // ===== REGISTRACIJA FUNKCIJA (PRVI PROLAZ) =====
 
     private void registerFunction(Ast.FuncDef funcDef) {
         String name = funcDef.name.lexeme;
@@ -96,8 +69,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         symbolTable.defineGlobal(mainSymbol);
     }
 
-    // ===== ANALIZA TOP-LEVEL ELEMENATA (DRUGI PROLAZ) =====
-
     private void analyzeTopItem(Ast.TopItem item) {
         if (item instanceof Ast.TopVarDecl topVarDecl) {
             analyzeVarDecl(topVarDecl.decl);
@@ -114,7 +85,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         currentFunction = symbolTable.lookupGlobal(funcDef.name.lexeme);
         symbolTable.enterScope("funkcija:" + funcDef.name.lexeme);
 
-        // Registruj parametre
         for (Ast.Param param : funcDef.params) {
             String paramName = param.name.lexeme;
             int line = param.name.line;
@@ -148,8 +118,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         currentFunction = null;
     }
 
-    // ===== ANALIZA STATEMENT-A =====
-
     private void analyzeStmt(Stmt stmt) {
         stmt.accept(this);
     }
@@ -174,7 +142,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             Symbol varSymbol = new Symbol(name, decl.type, line, column);
             symbolTable.define(varSymbol);
 
-            // FAZA 2: Proveri tip inicijalizatora
             Expr init = decl.inits.get(i);
             if (init != null) {
                 Ast.Type initType = getExprType(init);
@@ -191,7 +158,7 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
 
     @Override
     public Void visitExprStmt(Stmt.ExprStmt stmt) {
-        getExprType(stmt.expr);  // Analiziraj i proveri tipove
+        getExprType(stmt.expr);
         return null;
     }
 
@@ -223,7 +190,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
 
     @Override
     public Void visitIf(Stmt.If stmt) {
-        // FAZA 2: Proveri da li je uslov boolean
         checkCondition(stmt.ifArm.cond);
 
         symbolTable.enterScope("if");
@@ -338,16 +304,14 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         if (stmt.expr != null) {
             Ast.Type actualReturn = getExprType(stmt.expr);
 
-            // FAZA 2: Proveri povratni tip
             if (!TypeChecker.isAssignable(expectedReturn, actualReturn)) {
                 throw SemanticError.returnTypeMismatch(
                     TypeChecker.getTypeName(expectedReturn),
                     TypeChecker.getTypeName(actualReturn),
-                    0, 0  // TODO: Dodati lokaciju return-a
+                    0, 0
                 );
             }
         } else {
-            // return bez vrednosti - funkcija mora biti void
             if (expectedReturn.kind != Ast.Type.Kind.VOID) {
                 throw SemanticError.returnTypeMismatch(
                     TypeChecker.getTypeName(expectedReturn),
@@ -371,16 +335,9 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return null;
     }
 
-    // ===== POMOĆNA METODA: PROVERA USLOVA =====
-
-    /**
-     * Proverava da li je izraz tipa usluzenNeusluzen (boolean).
-     * Koristi se za if, while, for, do-while uslove.
-     */
     private void checkCondition(Expr cond) {
         Ast.Type condType = getExprType(cond);
         if (!TypeChecker.isBoolean(condType)) {
-            // Pokušaj da dobijemo lokaciju iz izraza
             int line = 0, column = 0;
             if (cond instanceof Expr.Ident ident) {
                 line = ident.name.line;
@@ -396,14 +353,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         }
     }
 
-    // ===== ANALIZA IZRAZA - VRAĆANJE TIPOVA =====
-
-    /**
-     * Vraća tip izraza i proverava semantičku ispravnost.
-     * Ovo je ključna metoda za FAZU 2.
-     *
-     * FAZA 4: Takođe čuva tip u mapu exprTypes za tipizirano stablo.
-     */
     private Ast.Type getExprType(Expr expr) {
         Ast.Type type;
 
@@ -438,15 +387,11 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             type = TypeChecker.VOID;
         }
 
-        // FAZA 4: Sačuvaj tip u mapu
         exprTypes.put(expr, type);
 
         return type;
     }
 
-    /**
-     * Vraća tip literala.
-     */
     private Ast.Type getLiteralType(Expr.Literal lit) {
         TokenType tokenType = lit.token.type;
 
@@ -460,9 +405,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         };
     }
 
-    /**
-     * Vraća tip identifikatora (promenljive).
-     */
     private Ast.Type getIdentType(Expr.Ident ident) {
         String name = ident.name.lexeme;
         int line = ident.name.line;
@@ -476,9 +418,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return symbol.type;
     }
 
-    /**
-     * Vraća tip pristupa nizu (indeksiranje).
-     */
     private Ast.Type getIndexType(Expr.Index index) {
         String name = index.name.lexeme;
         int line = index.name.line;
@@ -489,12 +428,10 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             throw SemanticError.undeclaredVariable(name, line, column);
         }
 
-        // Proveri da li je niz
         if (!TypeChecker.isArray(symbol.type)) {
             throw SemanticError.cannotIndex(TypeChecker.getTypeName(symbol.type), line, column);
         }
 
-        // Proveri da li su svi indeksi celobrojni
         for (Expr idx : index.indices) {
             Ast.Type idxType = getExprType(idx);
             if (!TypeChecker.isInteger(idxType)) {
@@ -502,7 +439,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             }
         }
 
-        // Izračunaj tip rezultata
         Ast.Type resultType = TypeChecker.getArrayElementType(symbol.type, index.indices.size());
         if (resultType == null) {
             throw SemanticError.cannotIndex(TypeChecker.getTypeName(symbol.type), line, column);
@@ -511,9 +447,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return resultType;
     }
 
-    /**
-     * Vraća tip poziva funkcije.
-     */
     private Ast.Type getCallType(Expr.Call call) {
         String name = call.callee.lexeme;
         int line = call.callee.line;
@@ -529,14 +462,12 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             throw SemanticError.cannotCall(name, line, column);
         }
 
-        // Proveri broj argumenata
         int expected = symbol.params.size();
         int actual = call.args.size();
         if (expected != actual) {
             throw SemanticError.argumentCountMismatch(name, expected, actual, line, column);
         }
 
-        // FAZA 2: Proveri tipove argumenata
         for (int i = 0; i < call.args.size(); i++) {
             Ast.Type argType = getExprType(call.args.get(i));
             Ast.Type paramType = symbol.params.get(i).type;
@@ -551,12 +482,9 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             }
         }
 
-        return symbol.type;  // Povratni tip funkcije
+        return symbol.type;
     }
 
-    /**
-     * Vraća tip binarnog izraza.
-     */
     private Ast.Type getBinaryType(Expr.Binary binary) {
         Ast.Type leftType = getExprType(binary.left);
         Ast.Type rightType = getExprType(binary.right);
@@ -567,7 +495,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
 
         Ast.Type resultType = null;
 
-        // Aritmetički operatori: ukupno, manje, puta, deljeno, kusur
         if (op == TokenType.UKUPNO || op == TokenType.MANJE ||
             op == TokenType.PUTA || op == TokenType.DELJENO || op == TokenType.KUSUR) {
 
@@ -581,7 +508,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
                 );
             }
         }
-        // Relacioni operatori: <, <=, >, >=
         else if (op == TokenType.LT || op == TokenType.LE ||
                  op == TokenType.GT || op == TokenType.GE) {
 
@@ -595,7 +521,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
                 );
             }
         }
-        // Operatori jednakosti: ==, !=
         else if (op == TokenType.EQ || op == TokenType.NEQ) {
             resultType = TypeChecker.getEqualityResultType(leftType, rightType);
             if (resultType == null) {
@@ -607,7 +532,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
                 );
             }
         }
-        // Logički operatori: &&, ||
         else if (op == TokenType.AND || op == TokenType.OR) {
             resultType = TypeChecker.getLogicalResultType(leftType, rightType);
             if (resultType == null) {
@@ -623,16 +547,12 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return resultType != null ? resultType : TypeChecker.VOID;
     }
 
-    /**
-     * Vraća tip unarnog izraza.
-     */
     private Ast.Type getUnaryType(Expr.Unary unary) {
         Ast.Type operandType = getExprType(unary.expr);
         TokenType op = unary.op.type;
         int line = unary.op.line;
         int column = unary.op.colStart;
 
-        // Logička negacija: !
         if (op == TokenType.NOT) {
             Ast.Type resultType = TypeChecker.getNotResultType(operandType);
             if (resultType == null) {
@@ -645,7 +565,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
             }
             return resultType;
         }
-        // Unarni minus: -
         else if (op == TokenType.MANJE) {
             Ast.Type resultType = TypeChecker.getUnaryMinusResultType(operandType);
             if (resultType == null) {
@@ -662,14 +581,10 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return operandType;
     }
 
-    /**
-     * Vraća tip dodele vrednosti.
-     */
     private Ast.Type getAssignType(Expr.Assign assign) {
         Ast.Type targetType = getExprType(assign.target);
         Ast.Type valueType = getExprType(assign.value);
 
-        // FAZA 2: Proveri da li se tipovi slažu
         if (!TypeChecker.isAssignable(targetType, valueType)) {
             int line = 0, column = 0;
             if (assign.target instanceof Expr.Ident ident) {
@@ -686,17 +601,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return targetType;
     }
 
-    /**
-     * Vraća tip kastovanja.
-     *
-     * FAZA 3: Eksplicitno kastovanje
-     * Primer: (racun) x
-     *
-     * Pravila:
-     * - porudzbina → racun: UVEK dozvoljeno
-     * - racun → porudzbina: Dozvoljeno (provera vrednosti u runtime)
-     * - Ostalo: GREŠKA
-     */
     private Ast.Type getCastType(Expr.Cast cast) {
         Ast.Type exprType = getExprType(cast.expr);
         Ast.Type targetType = cast.targetType;
@@ -704,7 +608,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         int line = cast.parenToken.line;
         int column = cast.parenToken.colStart;
 
-        // Proveri da li je kastovanje dozvoljeno
         if (!TypeChecker.isCastAllowed(exprType, targetType)) {
             throw SemanticError.invalidCast(
                 TypeChecker.getTypeName(exprType),
@@ -715,8 +618,6 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
 
         return targetType;
     }
-
-    // ===== VISITOR METODE ZA IZRAZE (delegiraju na getExprType) =====
 
     @Override
     public Void visitLiteral(Expr.Literal expr) {
@@ -772,16 +673,10 @@ public class SemanticAnalyzer implements Expr.Visitor<Void>, Stmt.Visitor<Void> 
         return null;
     }
 
-    // ===== POMOĆNE METODE =====
-
     public SymbolTable getSymbolTable() {
         return symbolTable;
     }
 
-    /**
-     * FAZA 4: Vraća mapu tipova za sve izraze.
-     * Koristi se u JsonAstPrinter za tipizirano stablo.
-     */
     public Map<Expr, Ast.Type> getExprTypes() {
         return exprTypes;
     }

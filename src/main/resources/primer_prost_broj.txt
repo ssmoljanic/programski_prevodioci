@@ -1,5 +1,3 @@
-# Primer: Provera prostog broja
-# Demonstrira logicke operatore i do-while petlju
 
 recept usluzenNeusluzen jeProst(porudzbina n) {
     rezervisanSto(n <= 1) {

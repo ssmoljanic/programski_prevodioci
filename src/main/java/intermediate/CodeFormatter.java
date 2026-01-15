@@ -4,33 +4,23 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-/**
- * Formatira međukod sa IP (Instruction Pointer) adresama.
- *
- * Dodeljuje svakoj instrukciji jedinstvenu adresu i
- * resolvira labele u njihove numeričke adrese.
- */
 public class CodeFormatter {
 
     private final List<Instruction> instructions;
     private final Map<String, Integer> labelAddresses = new HashMap<>();
-    private int ip = 0;  // Instruction Pointer
+    private int ip = 0;
 
     public CodeFormatter(List<Instruction> instructions) {
         this.instructions = instructions;
         assignAddresses();
     }
 
-    /**
-     * Dodeljuje IP adrese svim instrukcijama i mapira labele.
-     */
     private void assignAddresses() {
         ip = 0;
 
         for (Instruction instr : instructions) {
             instr.setAddress(ip);
 
-            // Ako je labela, zapamti njenu adresu
             if (instr.opCode == Instruction.OpCode.LABEL) {
                 labelAddresses.put((String) instr.operand, ip);
             }
@@ -39,23 +29,14 @@ public class CodeFormatter {
         }
     }
 
-    /**
-     * Vraća mapu labela -> adresa.
-     */
     public Map<String, Integer> getLabelAddresses() {
         return labelAddresses;
     }
 
-    /**
-     * Vraća ukupan broj instrukcija.
-     */
     public int getInstructionCount() {
         return ip;
     }
 
-    /**
-     * Formatira sve instrukcije sa IP adresama.
-     */
     public String format() {
         StringBuilder sb = new StringBuilder();
 
@@ -71,9 +52,6 @@ public class CodeFormatter {
         return sb.toString();
     }
 
-    /**
-     * Formatira instrukcije u jednostavnom formatu (bez okvira).
-     */
     public String formatSimple() {
         StringBuilder sb = new StringBuilder();
 
@@ -85,9 +63,6 @@ public class CodeFormatter {
         return sb.toString();
     }
 
-    /**
-     * Vraća tabelu labela sa adresama.
-     */
     public String formatLabelTable() {
         StringBuilder sb = new StringBuilder();
 
